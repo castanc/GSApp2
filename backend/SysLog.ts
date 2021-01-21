@@ -13,6 +13,10 @@ export class SysLog {
         if (this.ssLog == undefined) {
             SysLog.folder = Utils.getCreateFolder("SysLog");
             SysLog.ssLog = Utils.getCreateSpreadSheet(SysLog.folder, "SysLogs.txt");
+             let sheet = this.ssLog.getActiveSheet();
+        var range = sheet.getDataRange();
+        range.clearContent();
+       
         }
     }
 
