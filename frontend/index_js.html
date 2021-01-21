@@ -1,0 +1,40 @@
+<script>
+    let dt = new Date();
+    let recType = "";
+    let Data;
+    let cache  = new KVPCollection();
+
+
+
+    
+
+    function refreshDate() {
+        dt = new Date();
+        var m = padLeft(dt.getMonth() + 1, 10, '0');
+        var d = padLeft(dt.getDate(), 10, '0');
+        var fecha = `${dt.getFullYear()}-${m}-${d}`;
+        var h = padLeft(dt.getHours(), 10, '0');
+        var mi = padLeft(dt.getMinutes(), 10, '0');
+        var hora = `${h}:${mi}`;
+
+        var dti = document.getElementById('FECHA');
+        dti.value = fecha;
+
+        dti = document.getElementById('HORA');
+        dti.value = hora;
+    }
+
+
+
+    function initialize() {
+        //google.script.run.withSuccessHandler(onSuccess)
+        //    .loadSettings();
+        console.log("CLient start");
+        console.log("initialize");
+        refreshDate();
+
+    }
+    //Main entry point
+    window.addEventListener('load', initialize);
+
+</script>

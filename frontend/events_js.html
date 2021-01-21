@@ -1,0 +1,48 @@
+<script>
+
+    function failureHandler(error) {
+        console.log("failureHandler", error);
+        writeInnerHtml("error",error);
+    }
+
+    function successHandler(json) {
+        processResponse(json);
+    }
+
+
+    function onchange_RT(_recType) {
+        recType = _recType;
+        let html = "";  //cache.get(recType);
+        let = url = "";
+        if (html.length == 0) {
+            let row = Items.arr.filter(x => x[0] == "RT" && x[1] == recType);
+            if (row.length > 0) {
+                url = row[3];
+            }
+            google.script.run.withFailureHandler(failureHandler).withSuccessHandler(successHandler)
+                .getForm(recType, url);
+        }
+        else
+            writeInnerHtml("content", html);
+    }
+
+    function onSuccess(html) {
+        console.log("onSUccess: html:", html);
+        showDiv('secondary', false);
+        refreshDate();
+
+        var div = document.getElementById("formDiv");
+        div.innerHTML = html;
+
+
+        var select = document.getElementById("SELECT_REC_TYPE");
+        try {
+            if (select.options.length > 0)
+                loadContent(select.options[0].value)
+        }
+        catch (ex) {
+            console.log("exceptioon selecting first item", ex);
+        }
+    }
+
+</script>

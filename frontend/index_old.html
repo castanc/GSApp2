@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>GSApp</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <base target="_top">
+    <!-- 
+        https://www.w3schools.com/bootstrap4/bootstrap_get_started.asp        
+    -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+
+    <!-- jQuery library -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+    <!-- Popper JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+
+    <!-- Latest compiled JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</head>
+<?!= include('frontend/stylesheet'); ?>
+<?!= include('frontend/index_js'); ?>
+
+<body>
+    <div class="container-fluid">
+        <div id="menu" class="row">
+            <div id="menu" class="col-md-3">
+                <p class="h4 mb-4">Control Diabetes</p>
+            </div>
+            <div id="menu" class="col-md-9">
+                <button class="btn btn-primary" id="btnNew" onclick="doNewRecord()">New</button>
+                <!--todo: make ths link dynamic-->
+                <a href="https://docs.google.com/spreadsheets/d/10tISs6fRy0NgJ9vjwjmLOAS43c5YZttj6SafJICU-Pc/edit#gid=133723398"
+                    target="blank">Database</a>
+            </div>
+        </div>
+        <div id="mainContent">
+            <form id="myForm">
+                <div id="formDiv">`
+                    <div id="common">
+
+                        <div class="form-row">
+                            <div class="form-group col-md-4">
+                                <input type="date" class="form-control" id="FECHA" name="FECHA"
+                                    placeholder="Sheet File Name">
+                            </div>
+                            <div class="form-group col-md-4">
+                                <input type="time" id="HORA" name="HORA" placeholder="HH:MM"
+                                    pattern="^([0-1]?[0-9]|2[0-4]):([0-5][0-9])(:[0-5][0-9])?$" class="inputs time"
+                                    required>
+                            </div>
+                            <div class="form-group col-md-4">
+                                <div id="REC_TYPE" class="form-control">
+                                    <?!= getRecTypes(); ?>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="content"></div>
+                </div>
+                <button type="btn" class="btn btn-primary btn-block" onclick="processForm()">Submit</button>
+            </form>
+            <!--
+            <button data-toggle="collapse" data-target="#secondary" class="btn btn-secondary col-md-12">Template</button>
+            <div id="secondary" class="container h4 mb-4"></div>
+-->
+        </div>
+    </div>
+    <div id="result" class="container h4 mb-4"></div>
+    <div id="messages" class="container h4 mb-4 text-danger"></div>
+    </div>
+    </div>
+
+    <div class="footer-wrapper flex-shrink-0 p-10 text-center bg-content">
+        <div class="footer">© 2021 Cesar Castaño</div>
+    </div>
+
+    <script>
+    <?!= getDataDeclarations("Items,FoodItems,DrugItems"); ?>
+    <?!= getItems(); ?>
+
+    </script>
+</body>
+
+</html>

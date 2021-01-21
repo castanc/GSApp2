@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <base target="_top">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+        integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <?!= include('frontend/Stylesheet'); ?>
+    <?!= include('frontend/js_index'); ?>
+</head>
+
+<body>
+    <div id="main">
+        <div id="menu" class="row">
+            <div id="menu" class="col-12">
+                <button class="btn btn-primary" id="logs" onclick="loadForm('logs')">Logs</button>
+                <!--todo: make ths link dynamic-->
+                <a href="https://docs.google.com/spreadsheets/d/10tISs6fRy0NgJ9vjwjmLOAS43c5YZttj6SafJICU-Pc/edit#gid=133723398" target="blank">Database</a>
+            </div>
+        </div>
+        <div id="home" class="row">
+            <div class="col-8">
+                <form id="myForm" onsubmit="handleFormSubmit(this)">
+                    <div id="form">
+                        <p class="h4 mb-4 text-center">Control Diabetes</p>
+                        <div class="form-row">
+                            <div class="form-row">
+                                <div class="form-group col-4">
+                                    <input type="date" class="form-control" id="FECHA" name="FECHA" placeholder="Sheet File Name">
+                                </div>
+                                <div class="form-group col-4">
+                                    <input type="time" id="HORA" name="HORA" placeholder="HH:MM"
+                                        pattern="^([0-1]?[0-9]|2[0-4]):([0-5][0-9])(:[0-5][0-9])?$" class="inputs time" required>
+                                </div>
+                                <div class="form-group col-4">
+                                    Record Type:
+                                    <div id="REC_TYPE" class="form-control">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div id="content">
+                        
+                        </div>
+                                            </div>
+                    <button type="submit" class="btn btn-primary btn-block">Submit</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div id="status">
+        
+    </div>
+
+    <div id = "log">
+        
+    </div>
+
+</body>
+<script>
+    var list;
+    var records;
+    <?!= getNamedArrays(); ?>
+
+</script>
+
+<script id="dynamicScripts">
+</script>
+
+</html>
