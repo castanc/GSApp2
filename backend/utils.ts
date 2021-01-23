@@ -49,19 +49,18 @@ export class Utils {
     static getFileInfo(name) {
         let fi = null;
         let id = this.getIdFromUrl(name)
-        if ( id != null ) {
+        if (id != null) {
             let file = DriveApp.getFileById(id);
             if (file != undefined) {
                 fi = new FileInfo(file);
                 fi.nameUrl = name;
             }
         }
-        else
-        {
+        else {
             let fileInfos = Utils.getFilesByName(name);
             if (fileInfos.length > 0) {
                 fi = fileInfos[0];
-            }            
+            }
         }
         return fi;
     }
@@ -133,9 +132,10 @@ export class Utils {
         return spreadSheet;
     }
 
-    static getCreateSpreadSheet(folder, fileName, tabNames: string = "") {
+    static getCreateSpreadSheet(folder, fileName, tabNames: string = "", colNames: string = "") {
         let file = Utils.getFileFromFolder(fileName, folder);
         let tabs = tabNames.split(',');
+        let cols = colNames.split(",");
         let spreadSheet = null;
 
         if (file == null) {
@@ -144,6 +144,9 @@ export class Utils {
                 if (tabs[0].length > 0) {
                     var sh = spreadSheet.getActiveSheet();
                     sh.setName(tabs[0]);
+                    if (cols.length > 0) {
+                        sh.appendRow(cols);
+                    }
                 }
 
                 for (var i = 1; i < tabs.length; i++) {
@@ -198,6 +201,54 @@ export class Utils {
         return null;
     }
 
+    static getDateFromYMD(dtStr)
+    {
+        let dt = null;
+        try
+        {
+            let p = dtStr.split("-");
+            if ( p.length > 2)
+            {
+                dt = new Date(Number(p[0]),Number(p[1]),Number(p[2]));
+            }
+        }
+        catch(ex)
+        {
+
+        }
+        return dt;
+    }
+
+    static getDays(dt: Date)
+    {
+        let dt0 = new Date(1900,1,1);
+        let dif = dt.getTime() - dt0.getTime();
+        dif = dif / (1000*60*60*24);
+        return dif;
+
+    }
+
+    static getMinutes(time: string): number {
+        let minutes = 0;
+        let p = time.split(":");
+        try {
+            let h = Number(p[0]);
+            let m = Number(p[1]);
+
+            minutes = h * 60 + m;
+        }
+        catch (ex) {
+
+        }
+
+        return minutes;
+    }
+
+    static getRange(ss, sheetName: string, range: string = "") {
+        //todo: enable gettign specific range
+        let sheet = ss.getSheetByName(sheetName);
+        return sheet.getDataRange();
+    }
 
     static getData(ss, sheetName: string): [][] {
         let sheet = ss.getSheetByName(sheetName);

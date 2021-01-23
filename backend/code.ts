@@ -3,7 +3,15 @@ import { RecordItem } from "../models/RecordItem";
 import { Service } from "./service";
 import { SysLog } from "./SysLog";
 
+function testProcessForm()
+{
+    let d = `{"arr":[{"key":"REC_TYPE","value":"FOOD"},{"key":"FECHA","value":"2021-01-23"},{"key":"HORA","value":"09:32"},{"value":"BRKF","key":"MEAL_TYPES"}]}`;
+    let r = `[{"itemId":3,"cant":50,"id":0},{"itemId":4,"id":0,"cant":50}]`;
 
+    let data = JSON.parse(d);
+    let records = JSON.parse(r);
+    processForm(data,records);
+}
 function testGetId()
 {
     let sv = new Service();
@@ -25,7 +33,7 @@ function doGet(e) {
 function getRecTypes()
 {
     let sv = new Service();
-    let html = sv.getHtmlSelectFiltered("Items","RT","Select Record Type");
+    let html = sv.getHtmlSelectFiltered("Items","RT","Select Record Type",true);
     return html;
 }
 
@@ -68,7 +76,18 @@ function processForm(Data, records) {
     let html = "";
     let result = new GSResponse();
     try {
-        let result = sv.processForm(Data, records);
+        let id = sv.processForm(Data, records);
+        if ( id >= 0 )
+        {
+            result.id = id;
+            result.domainResult = 0;
+            result.messages.push(`Record was added with id: ${id}`);
+        }
+        else
+        {
+            result.domainResult = -1;
+            result.id = -1;
+        }
     }
     catch (ex) {
         Logger.log("Exception. parameters received:");
