@@ -1,0 +1,39 @@
+<table class="table">
+    <tr>
+        <td>
+            <label for="SELECT_SP">Sport:</label>
+        </td>
+        <td>
+            <?!= getSportTypes(); ?>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <label for="DISTANCE">Distance:</label>
+        </td>
+        <td>
+            <input type="number" id="DISTANCE" name="DISTANCE" placeholder="Distance"
+            onblur="onblurField(this.name,this.value)" required class="form-control">
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <label for="CALORIES">Calories:</label>
+        </td>
+        <td>
+            <input type="number" id="CALORIES" name="CALORIES"
+            onblur="onblurField(this.name,this.value)" placeholder="Calories" class="form-control">
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <label for="DURATION">Duration:</label>
+        </td>
+        <td>
+            <input type="number" id="HH" name="HH" placeholder="HH" onblur="onblurField(this.name,this.value)">
+            <input type="number" id="MM" name="MM" placeholder="MM" required onblurField="onblur(this.name,this.value)">
+            <input type="number" id="SS" name="SS" placeholder="SS" required onblurField="onblur(this.name,this.value)">
+            </td>
+    </tr>
+>
+</table>

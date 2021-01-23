@@ -19,6 +19,11 @@ function testGetId()
 }
 
 
+function getDataDeclarations(names):string
+{
+    let sv = new Service();
+    return sv.getDataDeclarations(names);
+}
 
 /* @Include JavaScript and CSS Files */
 function include(filename) {
@@ -30,10 +35,45 @@ function doGet(e) {
     return  HtmlService.createTemplateFromFile('frontend/index').evaluate();
 }
 
+function getSportTypes()
+{
+    let sv = new Service();
+    let html = sv.getHtmlSelectFiltered("Items","SP","Select Sport","",true);
+    return html;
+
+}
+
+function getEvents()
+{
+    let sv = new Service();
+    let html = sv.getHtmlSelectFiltered("Items","EV","Select Event","",true);
+    return html;
+
+}
+
+function getDrugItems()
+{
+    let sv = new Service();
+    let response = new GSResponse();
+    let json = "";
+    try
+    {
+        json = sv.getDrugItems();
+        SysLog.log(0,"DrugItems","code.ts getDrugItems()",json);
+        response.addData("DrugItems",json)
+    }
+    catch(ex)
+    {
+        handleException(ex,response,"code.ts getFoodItems()")
+    }
+    return json;    //JSON.stringify(response);
+}
+
+
 function getRecTypes()
 {
     let sv = new Service();
-    let html = sv.getHtmlSelectFiltered("Items","RT","Select Record Type",true);
+    let html = sv.getHtmlSelectFiltered("Items","RT","Select Record Type","",true);
     return html;
 }
 
@@ -57,11 +97,6 @@ function getFoodItems()
 
 
 
-function getDataDeclarations(names):string
-{
-    let sv = new Service();
-    return sv.getDataDeclarations(names);
-}
 
 function getPageArr(){
     return "";

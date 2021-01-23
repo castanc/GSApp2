@@ -79,7 +79,10 @@
 
 
     function renderRecordsAsTable(title) {
-        let row = `<tr>
+        let row = "";
+        if (records.length > 0) {
+
+            row = `<tr>
             <td>Remove</td>
             <td>${title}</td>
             <td>Cant</td>
@@ -87,8 +90,8 @@
             <td>Image</td>
             </tr>`;
 
-        for (var i = 0; i < records.length; i++) {
-            row = `${row}
+            for (var i = 0; i < records.length; i++) {
+                row = `${row}
             <tr>
             <td><btn type="button" class ="btn btn-danger" onclick="removeItem('${title}',${i})">Remove</button></td>
             <td>${records[i].descr}</td>
@@ -97,8 +100,11 @@
             <td><img src="${records[i].url}" class="thumb"></img></td>
             </tr>            
             `;
+            }
+            row = `<table class="table table-striped">${row}</table>`;
         }
-        row = `<table class="table table-striped">${row}</table>`;
+        console.log("renderRecordsAsTable()");
+        console.log(row);
         writeInnerHtml("rows", row);
     }
 
@@ -119,7 +125,7 @@
             <div class="row">
             <div class="col-2"><btn type="button" class ="btn tbn-danger">Remove</button></div>
             <div class="col-5">${records[i].descr}</div>
-            <div class="col-2"><input type="number" id="q{${i}} name="q${i}" placeholder="Cant" value = "${records[i].cant}""></div>
+            <div class="col-2"><input type="number" id="q{${i}} name="q${i}" placeholder="Cant" value = "${records[i].cant}" class="form-control"></div>
             <div class="col-2">${records[i].unit}</div>
             <div class="col-1"><img src="${records[i].url}" class="rounded img-fluid"></img></div>
             </div>            
@@ -129,7 +135,7 @@
     }
 
 
-    function getSelect(name, arr, idCol = 0, valueCol = 1, title = "", selectedValue = "",req=false) {
+    function getSelect(name, arr, idCol = 0, valueCol = 1, title = "", selectedValue = "", req = false, startRow = 0) {
         let options = "";
         let required = "";
         let onChange = `onchange="onchange_${name}(this.options[this.selectedIndex].value)"`;
@@ -137,54 +143,53 @@
         if (title.length == 0)
             title = "Select...";
 
-        if ( req )
+        if (req)
             required = "required";
 
         options = `<option value="">${title}</option>`
-        for (var i = 0; i < arr.length; i++) {
+        for (var i = startRow; i < arr.length; i++) {
             if (arr[i][idCol] == selectedValue)
                 options = `${options}<option value="${arr[i][idCol]}" selected>${arr[i][valueCol]}</option>`
             else
                 options = `${options}<option value="${arr[i][idCol]}">${arr[i][valueCol]}</option>`
         }
 
-        let html = `<select name="SELECT_${name}" id="SELECT_${name}" ${required} ${onChange}>
+        let html = `<select name="SELECT_${name}" id="SELECT_${name}" ${required} ${onChange} class="form-control" style="font-size:28px">
         ${options}</select>`
 
         return html;
 
     }
 
-    function getHtmlSelectFiltered(arr, groupId, title = "", value = "", controlId = "",required=false) {
+    function getHtmlSelectFiltered(arr, groupId, title = "", value = "", controlId = "", required = false, startRow = 0) {
         arr = arr.filter(x => x[0] == groupId);
         let html = "";
         if (controlId.length > 0)
-            html = this.getSelect(controlId, arr, 1, 2, title, value,required);
+            html = this.getSelect(controlId, arr, 1, 2, title, value, required);
         else
-            html = this.getSelect(groupId, arr, 1, 2, title, value,required);
+            html = this.getSelect(groupId, arr, 1, 2, title, value, required);
 
         return html;
     }
 
-    function initializeData(colList)
-    {
+    function initializeData(colList) {
         let c = colList.split(',');
         Data = new KVPCollection();
-        for(var i=0;i<c.length;i++)
-        {
-            Data.add(c[i],"");
+        for (var i = 0; i < c.length; i++) {
+            Data.add(c[i], "");
         }
     }
 
     function processData(recType, data) {
         records = [];
+        console.log(`processData(): ${recType}`);
         if (recType == "FOOD") {
             renderRecordsAsTable("Food Item");
             requiredFields = "REC_TYPE,FECHA,HORA,MEAL_TYPES";
             initializeData(requiredFields);
             let selectMealType = cache.get("MT");
             if (selectMealType == null || selectMealType == "") {
-                selectMealType = getHtmlSelectFiltered(Items.arr, "MT", "Select Meal Type",true);
+                selectMealType = getHtmlSelectFiltered(Items.arr, "MT", "Select Meal Type", true);
                 cache.add("MT", selectMealType);
             }
             writeInnerHtml("MEAL_TYPES", selectMealType);
@@ -200,6 +205,44 @@
                     .getFoodItems();
             }
         }
+        else if (recType == "EXE") {
+            requiredFields = "REC_TYPE,FECHA,HORA,SPORTID,DISTANCE,CALORIES,HH,MM,SS";
+            initializeData(requiredFields);
+        }
+        else if (recType == "DRUG") {
+            requiredFields = "REC_TYPE,FECHA,HORA,DRUGID,CANT";
+            initializeData(requiredFields);
+            if (DrugItems.arr.lenght == 0) {
+                google.script.run.withFailureHandler(failureHandler).withSuccessHandler(getDrugItemsHandler)
+                    .getDrugItems();
+            }
+            else {
+                let selectDrugType = cache.get("DrugItems");
+                if (selectDrugType == null || selectDrugType == "") {
+                    selectDrugType = getSelect("DrugItems", DrugItems.arr, 0, 1, "Select Drug", "", true, 1);
+                    cache.add("DrugItems", selectDrugType);
+                    writeInnerHtml("DRUG_ITEMS", selectDrugType);
+                }
+            }
+        }
+        else if (recType == "PRS") {
+            let selectDrugType = cache.get("SISTOLIC,DIASTOLIC");
+            initializeData(requiredFields);
+        }
+        else if (recType == "WEIGHT") {
+            let selectDrugType = cache.get("PESO,FAT,NONFAT,BMI");
+            initializeData(requiredFields);
+        }
+        else if (recType == "EVENT") {
+            let selectDrugType = cache.get("EVENTID,DETAILS");
+            initializeData(requiredFields);
+
+        }
+        else if (recType == "GLUC") {
+            let selectDrugType = cache.get("GLUC");
+            initializeData(requiredFields);
+        }
+
     }
 
     function addFoodItem(itemId) {
@@ -220,12 +263,12 @@
             Data.update("FECHA", getValue("FECHA"));
             Data.update("HORA", getValue("HORA"));
 
+
             let recordsBase = [];
-            for(var i=0; i<records.length; i++)
-            {
+            for (var i = 0; i < records.length; i++) {
                 let r = new RecordItemBase();
                 r.itemId = records[i].itemId;
-                if(recType == "FOOD")
+                if (recType == "FOOD")
                     r.cant = records[i].cant;
 
                 recordsBase.push(r);
@@ -236,12 +279,12 @@
             console.log(Data);
             console.log(recordsBase);
 
-            sessionStorage.setItem("data",JSON.stringify(Data));
-            sessionStorage.setItem("records",JSON.stringify(records));
+            sessionStorage.setItem("data", JSON.stringify(Data));
+            sessionStorage.setItem("records", JSON.stringify(records));
 
             google.script.run.withFailureHandler(failureHandler)
-            .withSuccessHandler(processResponse)
-            .processForm(Data,recordsBase);
+                .withSuccessHandler(processResponse)
+                .processForm(Data, recordsBase);
         }
         else {
             showError("Some fields are required");
@@ -250,6 +293,14 @@
     function processFoodItemsRequest(json) {
         FoodItems.arr = JSON.parse(json);
         console.log("FoodItems", FoodItems);
+    }
+
+    function processDrugItemsRequest(json) {
+        DrugItems.arr = JSON.parse(json);
+        let selectDrugType = getSelect("DrugItems", DrugItems.arr, 0, 1, "Select Drug", "", true, 1);
+        cache.add("DrugItems", selectDrugType);
+        writeInnerHtml("DRUG_ITEMS", selectDrugType);
+        console.log("DrugItems", DrugItems);
     }
 
     function processResponse(json) {
@@ -265,11 +316,10 @@
             console.log("messages");
             console.log(response.messages);
             let msg = "";
-            for(var i=0; i <response.messages.lenght; i++)
-            {
-                msg= `${msg}<p class="text-info>${response.messages[i]}</p></br>`;
+            for (var i = 0; i < response.messages.lenght; i++) {
+                msg = `${msg}<p class="text-info>${response.messages[i]}</p></br>`;
             }
-            writeInnerHtml("result",msg);
+            writeInnerHtml("result", msg);
 
         }
         else {
@@ -323,29 +373,49 @@
 
     }
 
+    function getDrugItemsHandler(json) {
+        localStorage.setItem("json", json);
+        processDrugItemsRequest(json);
+
+    }
+
     function successHandler(json) {
         localStorage.setItem("json", json);
         processResponse(json);
     }
 
 
+    function onchange_DrugItems(e) {
+        Data.update("DRUGID", e);
+        let row = DrugItems.arr.filter(x => x[0] == e)
+        if (row.length > 0) {
+            setValue("CANT", row[2]);
+            writeInnerHtml("UNITS", row[3]);
+            writeInnerHtml("DRUGIMAGE", `<img src="${row[4]}" class="thumb"></img>`);
+        }
+    }
+
+
+    function onblurField(id,value)
+    {
+        console.log("onblur()",id,value);
+        Data.update(id,value);
+    }
+
+    function onchange_SP(e) {
+        Data.update("SPORTID", e);
+    }
+
     function onchange_RT(e) {
         console.log(`onchange_RT( ${e})`);
         Data.update("REC_TYPE", e);
 
-        /*
-        let select = document.getElementById("SELECT_RT");
-        if ( select != undefined )
-        {
-        console.log(select.options);
-        console.log(select.selectedIndex);
-        console.log(select.options[select.selectedIndex]);
-        }
-        */
 
         recType = e;
         let html = cache.get(recType);
         let = url = "";
+        records = [];
+        renderRecordsAsTable();
         if (html.length == 0) {
             let row = Items.arr.filter(x => x[0] == "RT" && x[1] == recType);
             if (row.length > 0)
@@ -362,6 +432,11 @@
     function onchange_MT(e) {
         console.log("onchangeMT", e);
         Data.update("MEAL_TYPES", e);
+    }
+
+
+    function onchange_EV(e) {
+        Data.update("EVENTID", e);
     }
 
     function onchange_FC(e) {

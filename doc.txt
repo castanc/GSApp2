@@ -1,0 +1,23 @@
+manipualte select:
+
+        /*
+        let select = document.getElementById("SELECT_RT");
+        if ( select != undefined )
+        {
+        console.log(select.options);
+        console.log(select.selectedIndex);
+        console.log(select.options[select.selectedIndex]);
+        }
+        */
+
+        todo:
+
+        add attachnments to events:
+
+        file or file url
+        description
+        tags
+        date created
+        date last modified
+        
+

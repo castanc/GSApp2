@@ -22,7 +22,7 @@ export class Service {
     }
 
     //build html select
-    getSelect(name: string, arr: Array<Array<string>>, idCol: number = 0, valueCol: number = 1, title = "", selectedValue = "", req = false): string {
+    getSelect(name: string, arr: Array<Array<string>>, idCol: number = 0, valueCol: number = 1, title = "", selectedValue = "", req = false, startRow = 0): string {
         let options = "";
         let onChange = `onchange="onchange_${name}(this.options[this.selectedIndex].value)"`;
 
@@ -35,14 +35,14 @@ export class Service {
             required = "required";
 
         options = `<option value="">${title}</option>`
-        for (var i = 0; i < arr.length; i++) {
+        for (var i = startRow; i < arr.length; i++) {
             if (arr[i][idCol] == selectedValue)
                 options = `${options}<option value="${arr[i][idCol]}" selected>${arr[i][valueCol]}</option>`
             else
                 options = `${options}<option value="${arr[i][idCol]}">${arr[i][valueCol]}</option>`
         }
 
-        let html = `<select name="SELECT_${name}" id="SELECT_${name}" ${required} ${onChange}>
+        let html = `<select name="SELECT_${name}" id="SELECT_${name}" ${required} ${onChange} class="form-control" style="font-size:28px">
         ${options}
     </select>`
 
@@ -50,10 +50,18 @@ export class Service {
 
     }
 
+    getData(tabName,title="",startRow)
+    {
+        let grid = Utils.getData(this.db,tabName);
+        let html = this.getSelect(tabName,grid,0,1,title,"",true,startRow);
+        return html;
+    }
+
     getHtmlSelectFiltered(tableName: string, groupId: string, title: string = "", value: string = "", required = false): string {
         let arr = new Array<Array<string>>();
         arr = Utils.getData(this.db, tableName).filter(x => x[0] == groupId);
         let html = this.getSelect(groupId, arr, 1, 2, title, value, required);
+        SysLog.log(0,"parameters","getHtmlSelectFiltered",`tableName: ${tableName} groupId: ${groupId} title: ${title} value:[${value} required:${required}]`);
         SysLog.log(0, "select RT", "getHtmlSelectFiltered()", html);
         return html;
     }
@@ -79,10 +87,12 @@ export class Service {
         let records = new Array<RecordItem>();
         let record = new RecordItem();
 
+        SysLog.log(0,"arrays","code.ts getDataDeclarations()",names);
 
         let js = "";
         for (var i = 0; i < nameList.length; i++) {
             js = `${js}let ${nameList[i]} = ${JSON.stringify(new NamedArray(nameList[i]))};`;
+            
         }
 
         //js = `${js}let record = ${JSON.stringify(record)};`;
@@ -105,6 +115,12 @@ export class Service {
         return js;
     }
 
+    getDrugItems() {
+        let grid = Utils.getData(this.db, "DrugItems");
+        let js = JSON.stringify(grid);
+        return js;
+    }
+
     getForm(formId: string, formUrl: string = ""): GSResponse {
         let html = "";
         let response = new GSResponse();
@@ -123,12 +139,12 @@ export class Service {
         if (html.length > 0) {
             response.addHtml("content", html);
             if (formId == "FOOD ") {
-                response.addData("fields", `["FECHA","HORA","REC_TYPE","MEAL_TYPES"]`)
-                response.addData("types", `["date","time","number","text"]`);
-                response.addData("controls", `["input","input","select","select"]`);
-                response.addData("childFields", `["itemId","descr","cant"]`);
-                response.addData("childTypes", `["hidden","text","number"]`);
-                response.addData("childControls", `["input","input","input"]`);
+                // response.addData("fields", `["FECHA","HORA","REC_TYPE","MEAL_TYPES"]`)
+                // response.addData("types", `["date","time","number","text"]`);
+                // response.addData("controls", `["input","input","select","select"]`);
+                // response.addData("childFields", `["itemId","descr","cant"]`);
+                // response.addData("childTypes", `["hidden","text","number"]`);
+                // response.addData("childControls", `["input","input","input"]`);
             }
         }
         else {
