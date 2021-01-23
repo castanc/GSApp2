@@ -1,0 +1,119 @@
+<script>
+    function padLeft(value, maxValue, padChars) {
+        if (value < maxValue)
+            return `${padChars}${value.toString()}`;
+        return value.toString();
+    }
+
+    function writeInnerHtml(controlId, html) {
+        let control = document.getElementById(controlId);
+        if (control != undefined) {
+            control.innerHTML = html;
+        }
+        else {
+            console.log(`control ${controlId} not found`);
+            console.log(html);
+        }
+
+    }
+
+    function setValue(fieldId, value) {
+        var x = document.forms["myForm"][fieldId];
+        if (x != undefined)
+            x.value = value;
+
+    }
+
+    function getValue(fieldId) {
+        var x = document.forms["myForm"][fieldId];
+        if (x == undefined)
+            return "";
+        else return x.value;
+    }
+
+    function getElementText(fieldId) {
+        var x = document.getElementById(fieldId);
+        if (x == undefined)
+            return "";
+        else return x.innerText;
+    }
+
+
+    function getSelectedValue(fieldId) {
+        let select = document.getElementById(fieldId);
+        if ( select != undefined )
+        {
+            console.log(select.options);
+            console.log(select.selectedIndex);
+            console.log(select.options[select.selectedIndex]);
+            return select.options[select.selectedIndex];
+        }
+        else return "";
+    }
+
+
+    function showDiv(divId, value) {
+        console.log("showdiv() " + divId);
+        let div = document.getElementById(divId);
+        if (div != undefined) {
+            if (value)
+                div.style.display = "block";
+            else
+                div.style.display = "none";
+        }
+        else console.log("div not found");
+    }
+
+    function setHtml(id, html) {
+        let control = document.getElementById(id);
+        if (control != undefined)
+            control.innerHTML = html;
+
+    }
+
+    function openBrowser(url) {
+        console.log("openBrowser()");
+        console.log(url);
+        if (url.length > 0)
+            window.open(url);
+    }
+
+    function disableButtons(state) {
+        const buttons = document.querySelectorAll('button');
+        for (var i = 0; i < buttons.length; i++) {
+            buttons[i].disabled = state;
+        };
+
+        function getCurrentText(btn) {
+            let currentText = document.querySelector(`#${btn}`).innerHTML;
+            return currentText;
+        }
+
+        function setCurrentText(btn, text) {
+            document.querySelector(`#${btn}`).innerHTML = text;
+        }
+
+
+        function hideLabel(lbl) {
+            document.querySelector(`#${lbl}`).style.display = "none";
+        }
+
+        function changeButtonText(btn, text) {
+            let changed = false;
+            let currentText = document.querySelector(`#${btn}`).innerHTML;
+            if (currentText.toLowerCase().indexOf(text.toLowerCase()) < 0) {
+                currentText = `${text} ${currentText}`;
+                document.querySelector(`#${btn}`).innerHTML = currentText;
+                changed = true;
+            }
+            return changed;
+        }
+
+
+
+    }
+
+
+
+
+</script>

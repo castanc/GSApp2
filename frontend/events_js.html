@@ -1,0 +1,83 @@
+<script>
+
+    function failureHandler(error) {
+        console.log("failureHandler", error);
+        writeInnerHtml("error", error);
+    }
+
+    function getFoodItemsHandler(json) {
+        localStorage.setItem("json", json);
+        processFoodItemsRequest(json);
+
+    }
+
+    function successHandler(json) {
+        localStorage.setItem("json", json);
+        processResponse(json);
+    }
+
+
+    function onchange_RT(e) {
+        console.log(`onchange_RT( ${e})`);
+
+        /*
+        let select = document.getElementById("SELECT_RT");
+        if ( select != undefined )
+        {
+        console.log(select.options);
+        console.log(select.selectedIndex);
+        console.log(select.options[select.selectedIndex]);
+        }
+        */
+
+        recType = e;
+        let html = cache.get(recType);
+        let = url = "";
+        if (html.length == 0) {
+            let row = Items.arr.filter(x => x[0] == "RT" && x[1] == recType);
+            if (row.length > 0)
+                url = row[3];
+
+            google.script.run.withFailureHandler(failureHandler).withSuccessHandler(processResponse)
+                .getForm("RT", recType, url);
+        }
+        else
+            writeInnerHtml("content", html);
+    }
+
+    function onchange_MT(e) {
+        console.log("onchangeMT", e);
+    }
+
+    function onchange_FC(e) {
+        foodCategory = e;
+        let selectFoodItems = cache.get(foodCategory);
+        if (selectFoodItems == null || selectFoodItems == "") {
+            selectFoodItems = getHtmlSelectFiltered(FoodItems.arr, foodCategory, "Select Food Item");
+            cache.add(foodCategory, selectFoodItems);
+        }
+        writeInnerHtml("FOOD_ITEMS", selectFoodItems);
+        console.log("onchangeFC", e);
+    }
+
+
+    function onSuccess(html) {
+        console.log("onSUccess: html:", html);
+        showDiv('secondary', false);
+        refreshDate();
+
+        var div = document.getElementById("formDiv");
+        div.innerHTML = html;
+
+
+        var select = document.getElementById("SELECT_REC_TYPE");
+        try {
+            if (select.options.length > 0)
+                loadContent(select.options[0].value)
+        }
+        catch (ex) {
+            console.log("exceptioon selecting first item", ex);
+        }
+    }
+
+</script>

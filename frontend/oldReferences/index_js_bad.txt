@@ -1,0 +1,265 @@
+function processData(recType, data)
+    {
+        if ( recType == "FOOD")
+        {
+        }
+    }
+
+    //******************************************************************
+    //new code
+    function processResponse(json)
+    {
+        let response = JSON.parse(json);
+        console.log("processResponse()",response);
+        if ( response.result == 200 )
+        {
+            for(var i=0; i< response.html.length; i++)
+            {
+                writeInnerHtml(response.html[i].key,response[i].value)
+            }
+            processData(recType,response.data);
+        }
+        else
+        {
+            let row =  `<tr><td>Server Error</td><td>${response.result}</td></tr>`;
+            for(var i=0; i< response.error.length; i++)
+            {
+                row = `${row}<tr><td>${response.error[i].key}</td><td>${response[i].value}</td></tr>`
+            }
+
+            let table = `<table>${row}</table>`;
+            writeInnerHtml("error",table);
+
+        }
+    }
+    //******************************************************************
+
+
+
+    function onSuccessGetFileInfo(json) {
+        fi = JSON.parse(json);
+        console.log("onSuccessGetFileInfo()", fi);
+        if (fi != null && fi.url.length > 0) {
+            let fileData = "";
+            let dir = "";
+            if (fi.parentDirs.length > 0)
+                dir = fi.parentDirs[0];
+
+            let linkId = `LINK_${fi.controlId}`;
+            let folderId = `FOLDER_${fi.controlId}`;
+            let nameId = `NAME_${fi.controlId}`;
+            let inputId = `INPUT_${fi.controlId}`;
+            let dateId = `DATE_${fi.controlId}`;
+            console.log("date Modified", fi.dateModified);
+
+
+            let linkHtml = `<a href="${fi.url}">${fi.name}</a>`;
+            writeDiv(folderId, dir);
+            writeDiv(nameId, linkHtml);
+            writeDiv(dateId, moment(fi.dateModified).fromNow());
+
+            // let btn = `<button class="btn btn-secondary" onclick="openBrowser('${fi.url}')">${fi.controlText.replace("*", "")}</button>`;
+
+            // let lnk = `<a href="${fi.url}">[${fi.controlText.replace("*", "")}]</a>`;
+
+            // let div = document.getElementById(fi.controlId);
+            // if (div != undefined)
+            //     div.innerHTML = `${lnk}`;
+        }
+    }
+
+    function onSuccessGetFileInfo2(json) {
+        fi = JSON.parse(json);
+        console.log("onSuccessGetFileInfo2()", fi);
+        if (fi != null && fi.url.length > 0) {
+            let fileData = "";
+            let dir = "";
+            if (fi.parentDirs.length > 0)
+                dir = fi.parentDirs[0];
+
+            let linkId = `LINK_${fi.controlId}`;
+            let folderId = `FOLDER_${fi.controlId}`;
+            let nameId = `NAME_${fi.controlId}`;
+            let inputId = `INPUT_${fi.controlId}`;
+            let dateId = `DATE_${fi.controlId}`;
+
+            //writeDiv(linkId,`<a href="${fi.url}">${fi.controlText}</a>`);
+            writeDiv(folderId, dir);
+            writeDiv(nameId, fi.name);
+            writeDiv(dateId, moment(fi.dateModified).fromNow());
+            writeDiv("template", fi.content);
+            disableButtons(false);
+            console.log("date Modified", fi.dateModified);
+
+
+
+
+
+            // let btn = `<button class="btn btn-secondary" onclick="showDiv("template",true);">${fi.controlText.replace("*", "")}</button>`;
+
+            // let lnk = `<a href="${fi.url}">[${fi.controlText.replace("*", "")}]</a>`;
+
+            //  div = document.getElementById(fi.controlId);
+            //   if (div != undefined)
+            //   div.innerHTML = `${btn}`;
+        }
+    }
+
+    function onCallback(json) {
+
+        try {
+            console.log("onCallback()", json);
+            let response = JSON.parse(json);
+            console.log("after process: response:");
+            console.log(response);
+            if (response.result == 200) {
+                //document.forms["myForm"].reset();
+                showMessage("Process finished execution");
+                if (response.html.length > 0) {
+                    let div = document.getElementById("result");
+                    div.innerHTML = response.html[0].value;
+                }
+            }
+            else if (response.result == 500) {
+            }
+        }
+        catch (ex) {
+            showError("Process was completed, but error showing results: " + ex.message);
+        }
+
+    }
+
+
+
+    function toggleParameters() {
+        if (divParameters == undefined)
+            divParameters = document.getElementById("parameters");
+        if (divParameters.style.display === "none") {
+            divParameters.style.display = "block";
+        } else {
+            divParameters.style.display = "none";
+        }
+    }
+
+    function openParameters() {
+        if (pars.PARAMETERS_URL.length > 0)
+            window.open(pars.PARAMETERS_URL);
+    }
+
+
+
+
+    function showTemplate() {
+        if (templateText.length > 0) {
+            let div = document.getElementById("result");
+            div.innerHTML = templateText;
+        }
+    }
+
+    function getTemplateText(labelId, text, fileName) {
+        if (fileName.toLowerCase().indexOf("http") == 0) {
+            if (fileName.length > 0) {
+                //onSuccessGetDataLink old Handler
+                google.script.run.withSuccessHandler(onSuccessGetFileInfo2)
+                    .getTemplateText(labelId, text, fileName);
+            }
+        }
+        else showError("Only urls are valid for files");
+    }
+
+    function getFileUrl(div, btnText, fileName) {
+        btnTitle = btnText;
+        if (fileName.length > 0) {
+            lastDiv = div;
+            if (fileName.toLowerCase().indexOf("http" == 0))
+                onSuccessGetDataLink(fileName);
+            else
+                google.script.run.withSuccessHandler(onSuccessGetDataLink).getUrl(fileName);
+        }
+
+    }
+
+    function loadColumnNames() {
+        google.script.run.withSuccessHandler(onSuccessGetColumnNames)
+            .getColumnNamesSelects();
+
+    }
+
+
+    function closeResults() {
+        showDiv("mainContent", true);
+        disableButtons(false);
+    }
+
+
+    function showMessage(msg) {
+        let div = document.getElementById("result");
+        div.innerHTML = `<h4 class="text-info">${msg}</h4`;
+    }
+
+    function showError(msg) {
+        let div = document.getElementById("result");
+        div.innerHTML = `<h4 class="text-danger">${msg}</h4`;
+    }
+
+    function processForm() {
+        if (document.forms["myForm"].checkValidity()) {
+            if (!changeButtonText(btn, "Confirm ")) {
+
+                showMessage("Executing Mail Merge Process...");
+                disableButtons(true);
+                setCurrentText("btnExecute", "Execute");
+                showDiv("mainContent", false);
+                showDiv("template", false);
+
+                //if (urlDataFile.length > 0)
+                //    window.open(urlDataFile);
+
+                //google.script.run.withSuccessHandler(onCallback).processForm(document.forms["myForm"]);
+                google.script.run.withFailureHandler(myFailureHandler).withSuccessHandler(onCallback).processForm(document.forms["myForm"]);
+            }
+        }
+        else {
+            showError("Some fields are required");
+        }
+    }
+
+    //submit removed onsubmit="handleFormSubmit(this)
+    function handleFormSubmit(formObject) {
+        console.log("calling ProcessFOrm()", formObject);
+        disableButtons(true);
+
+        //if (urlDataFile.length > 0)
+        //    window.open(urlDataFile);
+
+        google.script.run.withSuccessHandler(onCallback).processForm(formObject);
+    }
+
+
+    function getFileInfo(id, text, fileName) {
+        fileName = fileName.trim();
+        if (fileName.toLowerCase().indexOf("http") == 0) {
+            if (fileName.length > 0) {
+                google.script.run.withSuccessHandler(onSuccessGetFileInfo)
+                    .getFileInfo(id, text, fileName);
+            }
+        }
+        else showError("Only urls are valid for files");
+    }
+
+    function preventFormSubmit() {
+
+        //todo: disable for now
+        // var forms = document.querySelectorAll('form');
+        // for (var i = 0; i < forms.length; i++) {
+        //     forms[i].addEventListener('submit', function (event) {
+        //         event.preventDefault();
+        //     });
+        // }
+
+        google.script.run.withSuccessHandler(onSuccess)
+            .loadSettings();
+
+
+    }
+

@@ -1,0 +1,404 @@
+<script>
+    let dt = new Date();
+    let recType = "";
+    let cache = new KVPCollection();
+    let Data = new KVPCollection();
+    let logLevel = 0;
+    let logs = [];
+
+
+    function addLog(title, text, method = "", obj = "", show = false, level = 0) {
+        let lm = new LogMessage();
+        lm.text = text;
+        lm.obj = obj;
+        lm.title = title;
+        if (method != null && method.length > 0) {
+            if (method.indexOf("()" < 0))
+                method = `${method}()`;
+            logs = [];
+            LogMessage.method = method;
+        }
+
+        logs.push(lm);
+        if (show)
+            log(level);
+    }
+
+
+    //todo: add remvoed items to food items combo
+    function removeItem(title, id) {
+        records = records.filter(x => x.id != id);
+        for (var i = 0; i < records.length; i++) {
+            records[i].id = i;
+        }
+        renderRecordsAsTable(title);
+    }
+
+
+    function replace(text, value, newValue) {
+        try {
+            while (text.indexOf(value) >= 0)
+                text = text.replace(value, newValue);
+        }
+        catch (ex) {
+        }
+        return text;
+    }
+
+    function log(level) {
+
+        if (level == logLevel || level == 9999) {
+
+            let row = "";
+            let json = "";
+            for (var i = 0; i < logs.length; i++) {
+                row = `${row}
+                 <tr><td>${LogMessage.method}</td><td>${logs[i].title}</td><td>${logs[i].text}</td></tr>
+                `;
+                console.log(LogMessage.method, logs[i].text);
+                console.log(logs[i].obj);
+            }
+            let table = `<table>${row}</table>`;
+            writeInnerHtml("result", table);
+            sessionStorage.setItem("lastLog", JSON.stringify(logs));
+        }
+
+
+
+    }
+
+    function setRecord(i, value) {
+        console.log(`SetRecord: ${i} ${value}`);
+        if (i < records.length) {
+            records[i].cant = Number(value);
+        }
+    }
+
+
+    function renderRecordsAsTable(title) {
+        let row = `<tr>
+            <td>Remove</td>
+            <td>${title}</td>
+            <td>Cant</td>
+            <td>Unidades</td>
+            <td>Image</td>
+            </tr>`;
+
+        for (var i = 0; i < records.length; i++) {
+            row = `${row}
+            <tr>
+            <td><btn type="button" class ="btn btn-danger" onclick="removeItem('${title}',${i})">Remove</button></td>
+            <td>${records[i].descr}</td>
+            <td><input type="number" id="q{${i}} name="q${i}" placeholder="Cant" value="${records[i].cant}" onchange="setRecord(${i},this.value)"></td>
+            <td>${records[i].unit}</td>
+            <td><img src="${records[i].url}" class="thumb"></img></td>
+            </tr>            
+            `;
+        }
+        row = `<table class="table table-striped">${row}</table>`;
+        writeInnerHtml("rows", row);
+    }
+
+
+
+
+    function renderRecords(title) {
+        let row = `<div class="row">
+            <div class="col-2">Remove</div>
+            <div class="col-5">${title}</div>
+            <div class="col-2">Cant</div>
+            <div class="col-2">Unidades</div>
+            <div class="col-1">Image</div>
+            </div>`;
+
+        for (var i = 0; i < records.length; i++) {
+            row = `${row}
+            <div class="row">
+            <div class="col-2"><btn type="button" class ="btn tbn-danger">Remove</button></div>
+            <div class="col-5">${records[i].descr}</div>
+            <div class="col-2"><input type="number" id="q{${i}} name="q${i}" placeholder="Cant" value = "${records[i].cant}""></div>
+            <div class="col-2">${records[i].unit}</div>
+            <div class="col-1"><img src="${records[i].url}" class="rounded img-fluid"></img></div>
+            </div>            
+            `;
+        }
+        writeInnerHtml("rows", row);
+    }
+
+
+    function getSelect(name, arr, idCol = 0, valueCol = 1, title = "", selectedValue = "") {
+        let options = "";
+        let onChange = `onchange="onchange_${name}(this.options[this.selectedIndex].value)"`;
+        if (title.length == 0)
+            title = "Select...";
+
+        options = `<option value="">${title}</option>`
+        for (var i = 0; i < arr.length; i++) {
+            if (arr[i][idCol] == selectedValue)
+                options = `${options}<option value="${arr[i][idCol]}" selected>${arr[i][valueCol]}</option>`
+            else
+                options = `${options}<option value="${arr[i][idCol]}">${arr[i][valueCol]}</option>`
+        }
+
+        let html = `<select name="SELECT_${name}" id="SELECT_${name}" ${onChange}>
+        ${options}</select>`
+
+        return html;
+
+    }
+
+    function getHtmlSelectFiltered(arr, groupId, title = "", value = "", controlId = "") {
+        arr = arr.filter(x => x[0] == groupId);
+        let html = "";
+        if (controlId.length > 0)
+            html = this.getSelect(controlId, arr, 1, 2, title, value);
+        else
+            html = this.getSelect(groupId, arr, 1, 2, title, value);
+
+        return html;
+    }
+
+
+
+    function processData(recType, data) {
+        if (recType == "FOOD") {
+            let selectMealType = cache.get("MT");
+            if (selectMealType == null || selectMealType == "") {
+                selectMealType = getHtmlSelectFiltered(Items.arr, "MT", "Select Meal Type");
+                cache.add("MT", selectMealType);
+            }
+            writeInnerHtml("MEAL_TYPES", selectMealType);
+
+            let selectFoodCategory = cache.get("FC");
+            if (selectFoodCategory == null || selectFoodCategory == "") {
+                selectFoodCategory = getHtmlSelectFiltered(Items.arr, "FC", "Select Category");
+                cache.add("FC", selectFoodCategory);
+            }
+            writeInnerHtml("FOOD_CATEGORIES", selectFoodCategory);
+            if (FoodItems.arr.length == 0) {
+                google.script.run.withFailureHandler(failureHandler).withSuccessHandler(getFoodItemsHandler)
+                    .getFoodItems();
+            }
+        }
+    }
+
+    function addFoodItem(itemId) {
+        record.itemId = itemId;
+        record.id = records.length;
+        records.push(record);
+        let row = `<tr><td>Food Item</td><td>Cant</td><td>Image</td></tr>`;
+        for (var i = 0; i < records.length; i++) {
+            row = `${row}
+      <tr><td>Food Item</td><td>Cant</td><td>Image</td></tr>`;
+        }
+    }
+
+
+    function processForm() {
+        console.log("processForm() Data:");
+        if (document.forms["myForm"].checkValidity()) {
+            Data.update("FECHA", getValue("FECHA"));
+            Data.update("HORA", getValue("HORA"));
+
+            let recordsBase = [];
+            for(var i=0; i<records.length; i++)
+            {
+                let r = new RecordItemBase();
+                r.itemId = records[i].itemId;
+                r.cant = records[i].cant;
+                recordsBase.push(r);
+            }
+            disableButtons(true);
+            showDiv("mainContent", false);
+
+            console.log(Data);
+            console.log(recordsBase);
+
+            google.script.run.withFailureHandler(failureHandler)
+            .withSuccessHandler(processResponse)
+            .processForm(Data,recordsBase);
+        }
+        else {
+            showError("Some fields are required");
+        }
+    }
+    function processFoodItemsRequest(json) {
+        FoodItems.arr = JSON.parse(json);
+        console.log("FoodItems", FoodItems);
+    }
+
+    function processResponse(json) {
+        let response = JSON.parse(json);
+        if (response.result == 200) {
+            for (var i = 0; i < response.html.length; i++) {
+                writeInnerHtml(response.html[i].key, response.html[i].value)
+            }
+            processData(recType, response.data);
+            disableButtons(false);
+            showDiv("mainContent", true);
+
+        }
+        else {
+            let row = `<tr><td>Server Error</td><td>${response.result}</td></tr>`;
+            for (var i = 0; i < response.error.length; i++) {
+                row = `${row}<tr><td>${response.error[i].key}</td><td>${response.error[i].value}</td></tr>`;
+            }
+
+            let table = `<table>${row}</table>`;
+            writeInnerHtml("error", table);
+
+        }
+    }
+
+
+
+
+    function refreshDate() {
+        dt = new Date();
+        var m = padLeft(dt.getMonth() + 1, 10, '0');
+        var d = padLeft(dt.getDate(), 10, '0');
+        var fecha = `${dt.getFullYear()}-${m}-${d}`;
+        var h = padLeft(dt.getHours(), 10, '0');
+        var mi = padLeft(dt.getMinutes(), 10, '0');
+        var hora = `${h}:${mi}`;
+
+        var dti = document.getElementById('FECHA');
+        dti.value = fecha;
+
+        dti = document.getElementById('HORA');
+        dti.value = hora;
+    }
+
+
+
+    function initialize() {
+        //google.script.run.withSuccessHandler(onSuccess)
+        //    .loadSettings();
+        refreshDate();
+    }
+
+    //************************************ event handlers ***********************************
+    function failureHandler(error) {
+        console.log("failureHandler", error);
+        writeInnerHtml("error", error);
+    }
+
+    function getFoodItemsHandler(json) {
+        localStorage.setItem("json", json);
+        processFoodItemsRequest(json);
+
+    }
+
+    function successHandler(json) {
+        localStorage.setItem("json", json);
+        processResponse(json);
+    }
+
+
+    function onchange_RT(e) {
+        console.log(`onchange_RT( ${e})`);
+        Data.update("REC_TYPE", e);
+
+        /*
+        let select = document.getElementById("SELECT_RT");
+        if ( select != undefined )
+        {
+        console.log(select.options);
+        console.log(select.selectedIndex);
+        console.log(select.options[select.selectedIndex]);
+        }
+        */
+
+        recType = e;
+        let html = cache.get(recType);
+        let = url = "";
+        if (html.length == 0) {
+            let row = Items.arr.filter(x => x[0] == "RT" && x[1] == recType);
+            if (row.length > 0)
+                url = row[3];
+
+            google.script.run.withFailureHandler(failureHandler).withSuccessHandler(processResponse)
+                .getForm("RT", recType, url);
+        }
+        else
+            writeInnerHtml("content", html);
+    }
+
+    function onchange_MT(e) {
+        console.log("onchangeMT", e);
+        Data.update("MEAL_TYPES", e);
+    }
+
+    function onchange_FC(e) {
+        foodCategory = e;
+        let selectFoodItems = cache.get(foodCategory);
+        if (selectFoodItems == null || selectFoodItems == "") {
+            selectFoodItems = getHtmlSelectFiltered(FoodItems.arr, foodCategory, "Select Food Item", "", "FoodItems");
+            cache.add(foodCategory, selectFoodItems);
+        }
+        console.log(`foodCategory:${e}`, selectFoodItems);
+        console.log(FoodItems.arr);
+        sessionStorage.setItem("fooditems", JSON.stringify(FoodItems.arr));
+        sessionStorage.setItem("selectFoodItems", JSON.stringify(selectFoodItems));
+        writeInnerHtml("FOOD_ITEMS", selectFoodItems);
+        console.log(`foodCategory ${e}`, selectFoodItems)
+    }
+
+
+    //todo: remove assigned items from combo
+    function onchange_FoodItems(e) {
+        let fi = FoodItems.arr.filter(x => x[1] == e);
+        if (fi.length > 0) {
+            record = new RecordItem();
+            record.descr = fi[0][2];
+            record.url = fi[0][9];
+            record.unit = fi[0][4];
+            record.cant = fi[0][3];
+            record.itemId = Number(e);
+            record.id = records.length;
+            records.push(record);
+            //renderRecords("Food Item");
+            renderRecordsAsTable("Food Item");
+        }
+        else
+            addLog("error", `foodItem ${e} not found`, "onchange_FoodItems");
+        console.log("Records", records);
+        log(0);
+
+    }
+
+    function showMessage(text) {
+        writeInnerHtml("result", text);
+    }
+
+    function writeError(text) {
+        writeInnerHtml("error", text);
+    }
+
+    function onSuccess(html) {
+        console.log("onSUccess: html:", html);
+        showDiv('secondary', false);
+        refreshDate();
+
+        var div = document.getElementById("formDiv");
+        div.innerHTML = html;
+
+
+        var select = document.getElementById("SELECT_REC_TYPE");
+        try {
+            if (select.options.length > 0)
+                loadContent(select.options[0].value)
+        }
+        catch (ex) {
+            console.log("exceptioon selecting first item", ex);
+        }
+    }
+
+    //************************************ event handlers end ***********************************
+
+
+
+    //Main entry point
+    window.addEventListener('load', initialize);
+
+</script>

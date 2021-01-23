@@ -1,0 +1,297 @@
+<script>
+    // Prevent forms from submitting.
+  
+  
+    function recTypeChanged(id, e) {
+      console.log(`id: ${id} recTypeChanged() ${e}`);
+      loadContent(e);
+    }
+  
+    
+  
+    function addFoodItem(divId){
+      records.push(item);
+      var html = `<table><tr>`;
+      for(var i=0;i<records.length;i++)
+      {
+        var row = `<td>`
+      }
+    }
+  
+    
+    function onSuccess(html) {
+      console.log("onSUccess: html:", html);
+      var div = document.getElementById("form");
+      div.innerHTML = html;
+  
+  
+      var select = document.getElementById("SELECT_REC_TYPE");
+      try {
+        if (select.options.length > 0)
+          loadContent(select.options[0].value)
+      }
+      catch (ex) {
+        console.log("exceptioon selecting first item", ex);
+      }
+  
+      var dt = new Date();
+      console.log("date:",dt);
+      document.getElementById("FECHA").value = `${dt.getFullYear()}-${dt.getMonth()+1}-${dt.getDate()}`;
+      if ( dt.getHours()<12 )
+        document.getElementById("HORA").value = `${dt.getHours()}:${dt.getMinutes()} AM`;
+      else
+        document.getElementById("HORA").value = `${dt.getHours()-12}:${dt.getMinutes()} PM`;
+  
+    }
+  
+    function onSuccessContent(html) {
+      console.log("onSUccess: html:", html);
+      var div = document.getElementById("content");
+      div.innerHTML = html;
+    }
+  
+    function onSuccessContentAndData(json){
+      console.log("onSUccessContentAndData",json);
+      var sr = JSON.parse(json);
+      console.log("SrverResponse",sr);
+      if ( sr.result == 200 ){
+        var div = document.getElementById('content');
+        div.innerHTML = sr.html[0];
+  
+        div = document.getElementById('dynamicScripts');
+        div.innerHTML = sr.json[0];
+      }
+    }
+  
+  
+    function loadContent(recType) {
+      google.script.run.withSuccessHandler(onSuccessContent)
+        .loadContent(recType);
+    }
+  
+    function loadContentAndData(recType) {
+      google.script.run.withSuccessHandler(onSuccessContentAndData)
+        .loadContentAndData(recType);
+    }
+    
+  
+    function loadForm(formName) {
+      google.script.run.withSuccessHandler(onSuccess)
+        .loadForm(formName);
+  
+    }
+  
+    
+  
+    //process form with html return
+    function callback(html) {
+      document.getElementById("result").innerHTML = html;
+      //document.getElementById("myForm").reset();
+  
+    }
+  
+    function handleFormSubmit(formObject) {
+      console.log("calling ProcessFOrm()", formObject);
+      google.script.run.withSuccessHandler(callback).processForm(formObject);
+    }
+  
+    function preventFormSubmit() {
+      var forms = document.querySelectorAll('form');
+      for (var i = 0; i < forms.length; i++) {
+        forms[i].addEventListener('submit', function (event) {
+          event.preventDefault();
+        });
+      }
+    }
+  
+  
+   
+  
+    function initialize() {
+        console.log("Data",JSON.stringify(Data));
+          if (Data[0].grid.length == 0) {
+              google.script.run.withSuccessHandler(processLoadItems)
+                  .getData("Items",0);
+          }
+          else
+              loadSelect("REC_TYPE", "RT", "Select Rec TYpe");
+              
+          refreshDate();
+          setButtonsDisabled(true);
+          preventFormSubmit();
+        }
+      
+    
+  
+  
+      
+      function getSelect(divId, group, title = "", idCol = 1, valueCol = 2) {
+          group = group.trim().toUpperCase();
+          if (title.length == 0)
+              title = "Select";
+          var grid = Data[0].grid.filter(row => row[0].trim().toUpperCase() == group);
+          var html = "";
+          var options = `<option value="" selected>${title}</option>`;
+          for (var i = 0; i < grid.length; i++) {
+              options = options + `<option value="${grid[i][1]}">${grid[i][2]}</option>`
+          }
+          return `<select id="SELECT_${group}" onChange="onChange_${divId}('${group}',this.options[this.selectedIndex].value)">${options}</select>`;
+      }
+  
+      function getSelectFromGrid(items, divId, group, title = "", idGroupd = 0, idCol = 1, valueCol = 2) {
+          group = group.trim().toUpperCase();
+          if (title.length == 0)
+              title = "Select";
+          var grid = items.filter(row => row[idGroup].trim().toUpperCase() == group);
+          var html = "";
+          var options = `<option value="">${title}</option>`;
+          for (var i = 0; i < grid.length; i++) {
+              options = options + `<option value="${grid[i][idCol]}">${grid[i][idValue]}</option>`
+          }
+          return `<select id="SELECT_${group}" onChange="onChange_${group}('${group}',this.options[this.selectedIndex].value)">${options}</select>`;
+      }
+  
+  
+      function padLeft(value, maxValue, padChars) {
+          if (value < maxValue)
+              return `${padChars}${value.toString()}`;
+          return value.toString();
+      }
+  
+      function refreshDate() {
+          var dt = new Date();
+          var m = padLeft(dt.getMonth() + 1, 10, '0');
+          var d = padLeft(dt.getDate(), 10, '0');
+          var fecha = `${dt.getFullYear()}-${m}-${d}`;
+          var h = padLeft(dt.getHours(), 10, '0');
+          var mi = padLeft(dt.getMinutes(), 10, '0');
+          var hora = `${h}:${mi}`;
+  
+          var dti = document.getElementById('FECHA');
+          dti.value = fecha;
+  
+          dti = document.getElementById('HORA');
+          dti.value = hora;
+      }
+  
+      function onChange_REC_TYPE(groupName, value) {
+          google.script.run.withSuccessHandler(processServerResponse)
+              .loadForm2(value);
+  
+      }
+  
+      function onChange_MEAL_TYPES(groupName, value) {
+  
+      }
+  
+      function onChange_FOOD_CATEGORIES(groupName, value) {
+        if  (Data[1].grid.length == 0 )
+        {
+          google.script.run.withSuccessHandler(processLoadFoodItems)
+                  .getData("Items",0);
+        }
+        else
+        {
+          let html = getSelectFromGrid(Data[1].grid, "FOOD_ITEMS", value, "", 2, 0,3);
+          let div = document.getElementById("FOOD_ITEMS");
+          div.innerHTML = html;
+        }
+      }
+  
+      function onChange_FOOD_ITEMS(groupName, value) {
+  
+      }
+  
+  
+      function setButtonsDisabled(newState) {
+          const buttons = document.querySelectorAll('button');
+          for (var i = 0; i < buttons.length; i++) {
+              buttons[i].disabled = newState;
+          };
+  
+      }
+  
+      function processServerResponse(json) {
+          var sr = JSON.parse(json);
+          console.log("serverResponse", sr);
+          if (sr.result == 200) {
+            try{
+              for (var i in sr.html) {
+                  let div = document.getElementById(sr.html[i].key);
+                  if (div != undefined)
+                      div.innerHTML = sr.html[i].value;
+                  else
+                      console.log(`div for ${sr.html[i].key} not found`);
+  
+              }
+              for (var i in sr.localRenders) {
+                  let html = getSelect(sr.localRenders[i].key, sr.localRenders[i].value);
+                  let div = document.getElementById(sr.localRenders[i].key);
+                  if (div != undefined)
+                      div.innerHTML = html;
+                  else
+                      console.log(`error accessing ${sr.localRenders[i].key}`);
+              }
+              for (var i in sr.script) {
+                console.log(`sr.script[i]: ${i}: ${sr.script[i]}`);
+                  let div = document.getElementById(sr.script[i].key);
+                  if (div != undefined) {
+                      try {
+                        let index = Number(sr.script[i].key);
+                        Data[index].grid = JSON.parse(sr.script[i].value);
+                      }
+                      catch (ex) {
+                          console.log("processServerResposne()Excpetion", ex.stack);
+                      }
+  
+                  }
+                  else
+                      console.log(`div for ${sr.html[i].key} not found`);
+              }
+            }
+            catch(ex)
+            {
+              console.log(ex.stack);
+            }
+          }
+          else {
+              for (var i in sr.error) {
+                  let div = document.getElementById(sr.error[i].key);
+                  if (div != undefined)
+                      div.innerHTML = sr.error[i].value;
+              }
+  
+          }
+      }
+  
+      function processLoadItems(json) {
+          Data[0].grid = JSON.parse(json);
+          console.log("items", Data[0].grid);
+          loadSelect("REC_TYPE", "RT", "Select Rec Type");
+      }   
+  
+      function processLoadFoodItems(json) {
+        console.log("fodoItems",json);
+          Data[1].grid = JSON.parse(json);
+          console.log("foodItems", Data[1].grid);
+          let html = getSelectFromGrid(Data[1].grid, "FOOD_ITEMS", value, "", 2, 0,3);
+          let div = document.getElementById("FOOD_ITEMS");
+          div.innerHTML = html;
+      }
+  
+    
+      function loadSelect(divId, group, title) {
+          var html = getSelect(divId, group, title);
+          var div = document.getElementById(divId);
+          div.innerHTML = html;
+  
+      }
+  
+    var recType = "";
+    window.addEventListener('load', initialize);
+  
+    window.onerror = function(error, url, line) {
+      console.log({acc:'error', data:'ERR:'+error+' URL:'+url+' L:'+line});
+  };
+  
+  </script>
