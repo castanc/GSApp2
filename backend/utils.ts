@@ -201,12 +201,12 @@ export class Utils {
         return null;
     }
 
-    static getDateFromYMD(dtStr)
+    static getDateFromYMD(dtStr,sep:string="-")
     {
         let dt = null;
         try
         {
-            let p = dtStr.split("-");
+            let p = dtStr.split(sep);
             if ( p.length > 2)
             {
                 dt = new Date(Number(p[0]),Number(p[1]),Number(p[2]));
@@ -219,10 +219,28 @@ export class Utils {
         return dt;
     }
 
-    static getDays(dt: Date)
+    static getDateFromDMY(dtStr, sep:string = "-")
     {
-        let dt0 = new Date(1900,1,1);
-        let dif = dt.getTime() - dt0.getTime();
+        let dt = null;
+        try
+        {
+            let p = dtStr.split(sep);
+            if ( p.length > 2)
+            {
+                dt = new Date(Number(p[2]),Number(p[1]),Number(p[0]));
+            }
+        }
+        catch(ex)
+        {
+
+        }
+        return dt;
+    }
+
+
+    static getDays(dt: Date, startDate:Date = new Date(1900,1,1))
+    {
+        let dif = dt.getTime() - startDate.getTime();
         dif = dif / (1000*60*60*24);
         return dif;
 

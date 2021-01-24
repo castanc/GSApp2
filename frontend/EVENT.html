@@ -1,26 +1,13 @@
+<div class="row fat-row">
+    <div class="col-md-3">Event</div>
+    <div class="col-md-9">
+        <?!= getEvents(); ?>
+    </div>
+</div>
 <div class="row">
-    <table class="table">
-        <tr>
-            <td>
-                <label for="SELECT_EV">Event</label>
-            </td>
-            <td>
-                <div id="EVENT">
-                    <?!= getEvents(); ?>
-                </div>
-
-            </td>
-        </tr>
-        <tr>
-            <td>
-                <label for="DETAILS">Details</label>
-
-            </td>
-            <td>
-                <textarea id="DETAILS" name="DETAILS" rows="10" , cols="40" id="DETAILS" name="DETAILS"
-                    placeholder="Details" onblur="onblurField(this.name,this.value)" required  class="form-control"></textarea>
-
-            </td>
-        </tr>
-    </table>
+    <div class="col-md-3"><label for="DETAILS">Details</label></div>
+    <div class="col-md-9">
+        <textarea id="DETAILS" name="DETAILS" rows="10" , cols="40" id="DETAILS" name="DETAILS" placeholder="Details"
+            onblur="onblurField(this.name,this.value)" required class="form-control"></textarea>
+    </div>
 </div>

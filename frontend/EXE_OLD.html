@@ -1,0 +1,36 @@
+<div class="row fat-row">
+    <div class="col-md-3"><label for="SELECT_SP">Sport:</label></div>
+    <div class="col-md-9">
+        <?!= getSportTypes(); ?>
+    </div>
+</div>
+<div class="row fat-row">
+    <div class="col-md-3"><label for="DISTANCE">Distance:</label></div>
+    <div class="col-md-9">
+        <input type="number" id="DISTANCE" name="DISTANCE" placeholder="Distance"
+            onblur="onblurField(this.name,this.value)" required class="form-control">
+    </div>
+</div>
+<div class="row fat-row">
+    <div class="col-md-3"><label for="CALORIES">Calories:</label></div>
+    <div class="col-md-9">
+        <input type="number" id="CALORIES" name="CALORIES" onblur="onblurField(this.name,this.value)"
+            placeholder="Calories" class="form-control">
+    </div>
+</div>
+<div class="row fat-row">
+    <div class="col-md-3"><label for="DURATION">Duration:</label></div>
+    <div class="col-md-3">
+        <input type="number" id="HH" name="HH" placeholder="HH" class="form-control"
+            onblur="onblurField(this.name,this.value)">
+    </div>
+    <div class="col-md-3">
+        <input type="number" id="MM" name="MM" placeholder="MM" class="form-control" required
+            onblurField="onblur(this.name,this.value)">
+    </div>
+    <div class="col-md-3">
+        <input type="number" id="SS" name="SS" placeholder="SS" class="form-control" required
+            onblurField="onblur(this.name,this.value)">
+
+    </div>
+</div>

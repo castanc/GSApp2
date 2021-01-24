@@ -31,13 +31,15 @@
 <?!= include('frontend/js_index'); ?>
 
 
-<body style="font-size:28px">
+<body class="big-font">
     <div class="container-fluid">
-        <div id="menu" class="row">
-            <div id="menu" class="col-md-3">
-                <p class="h4 mb-4">Control Diabetes</p>
+        <div id="menu" class="row fat-row">
+            <hr>
+            <div id="menu" class="col-md-3 big-font">
+                <p>PRK</p>
             </div>
-            <div id="menu" class="col-md-9">
+            <hr>
+            <div id="menu" class="big-font col-md-9">
                 <!--todo: make ths link dynamic-->
                 <a href="https://docs.google.com/spreadsheets/d/10tISs6fRy0NgJ9vjwjmLOAS43c5YZttj6SafJICU-Pc/edit#gid=133723398"
                     target="blank">Database</a>
@@ -49,34 +51,43 @@
         </div>
         <div id="mainContent">
             <form id="myForm">
-                <div id="formDiv">`
+                <div id="formDiv">
 
                     <div id="common">
 
-                        <table class="table">
-                            <tr>
-                                <td><label for="FECHA">Fecha</label></td>
-                                <td> <input type="date" class="form-control" id="FECHA" name="FECHA" placeholder="Fecha"
-                                        required></td>
-                            </tr>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <label for="FECHA">Fecha</label>
+                            </div>
+                            <div class="col-md-3">
+                                <input type="date" class="form-control" id="FECHA" name="FECHA" placeholder="Fecha"
+                                    required>
+                            </div>
 
-                            <tr>
-                                <td><label for="HORA">Hora</label></td>
-                                <td> <input type="time" id="HORA" name="HORA" placeholder="HH:MM"
-                                        pattern="^([0-1]?[0-9]|2[0-4]):([0-5][0-9])(:[0-5][0-9])?$" class="inputs time"
-                                        required class="form-control">
-                                </td>
-                            </tr>
-                            <tr>
-                                <td><label for="REC_TYPE">Record Type</label></td>
-                                <td>
-                                    <div id="REC_TYPE">
-                                        <?!= getRecTypes(); ?>
-                                    </div>
-                                </td>
-                            </tr>
-                        </table>
+                            <div class="col-md-3">
+                                <label for="HORA">Hora</label>
+                            </div>
+                            <div class="col-md-3">
 
+                                <input type="time" id="HORA" name="HORA" placeholder="HH:MM"
+                                    pattern="^([0-1]?[0-9]|2[0-4]):([0-5][0-9])(:[0-5][0-9])?$" class="inputs time"
+                                    required class="form-control">
+                            </div>
+                        </div>
+
+                        <div class="row fat-row">
+                            <div class="col-md-3">
+                                <label for="REC_TYPE">Record Type</label>
+                            </div>
+                            <div class="col-md-9">
+                                <div id="REC_TYPE" class="text-center">
+                                    <?!= getRecTypes(); ?>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row fat-row">
+                            <hr>
+                        </div>
                     </div>
                     <div id="content"></div>
                 </div>
@@ -84,6 +95,7 @@
                     <div id="rows">
                     </div>
                 </div>
+                <hr>
                 <button type="button" class="btn btn-primary btn-block" onclick="processForm()">Submit</button>
             </form>
             <!--
@@ -102,7 +114,7 @@
     </div>
 
     <script>
-    <?!= getDataDeclarations("Items,FoodItems,DrugItems"); ?>
+    <?!= getDataDeclarations("Items,FoodItems,DrugItems,ExeItems"); ?>
     <?!= getItems(); ?>
 
     </script>

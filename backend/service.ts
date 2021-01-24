@@ -50,10 +50,9 @@ export class Service {
 
     }
 
-    getData(tabName,title="",startRow)
-    {
-        let grid = Utils.getData(this.db,tabName);
-        let html = this.getSelect(tabName,grid,0,1,title,"",true,startRow);
+    getData(tabName, title = "", startRow) {
+        let grid = Utils.getData(this.db, tabName);
+        let html = this.getSelect(tabName, grid, 0, 1, title, "", true, startRow);
         return html;
     }
 
@@ -61,7 +60,7 @@ export class Service {
         let arr = new Array<Array<string>>();
         arr = Utils.getData(this.db, tableName).filter(x => x[0] == groupId);
         let html = this.getSelect(groupId, arr, 1, 2, title, value, required);
-        SysLog.log(0,"parameters","getHtmlSelectFiltered",`tableName: ${tableName} groupId: ${groupId} title: ${title} value:[${value} required:${required}]`);
+        SysLog.log(0, "parameters", "getHtmlSelectFiltered", `tableName: ${tableName} groupId: ${groupId} title: ${title} value:[${value} required:${required}]`);
         SysLog.log(0, "select RT", "getHtmlSelectFiltered()", html);
         return html;
     }
@@ -72,10 +71,20 @@ export class Service {
         let sheet = this.db.getSheetByName(tabName);
         let rangeData = sheet.getRange(1, 1, 1, 1);
         let cell = rangeData.getCell(1, 1).getValue();
-        if (cell == null )
+        if (cell == null)
             cell = 0;
-        
-        id = cell+1;  //Number(cell);
+
+        id = cell + 1;  //Number(cell);
+        rangeData.getCell(1, 1).setValue(id);
+        return id;
+    }
+
+    updateId(tabName, id): number {
+        let sheet = this.db.getSheetByName(tabName);
+        let rangeData = sheet.getRange(1, 1, 1, 1);
+        let cell = rangeData.getCell(1, 1).getValue();
+        if (cell == null)
+            cell = 0;
         rangeData.getCell(1, 1).setValue(id);
         return id;
     }
@@ -87,12 +96,12 @@ export class Service {
         let records = new Array<RecordItem>();
         let record = new RecordItem();
 
-        SysLog.log(0,"arrays","code.ts getDataDeclarations()",names);
+        SysLog.log(0, "arrays", "code.ts getDataDeclarations()", names);
 
         let js = "";
         for (var i = 0; i < nameList.length; i++) {
             js = `${js}let ${nameList[i]} = ${JSON.stringify(new NamedArray(nameList[i]))};`;
-            
+
         }
 
         //js = `${js}let record = ${JSON.stringify(record)};`;
@@ -120,6 +129,13 @@ export class Service {
         let js = JSON.stringify(grid);
         return js;
     }
+
+    getExeItems() {
+        let grid = Utils.getData(this.db, "ExeItems");
+        let js = JSON.stringify(grid);
+        return js;
+    }
+
 
     getForm(formId: string, formUrl: string = ""): GSResponse {
         let html = "";
@@ -156,10 +172,84 @@ export class Service {
         return response;
     }
 
+    importLegacy(Data: KVPCollection): number {
+        return 0;
+    }
+
+    importGLUC(Data: KVPCollection): number {
+        let data2 = new KVPCollection();
+        data2.initialize("ROW,ID,INACTIVE,DAYS,MINUTES");
+        data2.addRange(Data);
+
+
+        let id = this.getId("Id");
+        let fecha = data2.get("FECHA");
+        let dt = Utils.getDateFromYMD(fecha);
+        let days = Utils.getDays(dt);
+        let year = fecha.substring(0, 4);
+        let hora = data2.get("HORA");
+        let fileName = `${year}_data`;
+        let lastRow = 2;
+        let ss = Utils.getCreateSpreadSheet(this.folder, fileName, "Master,Detail", data2.getColNames());
+        let sheet = ss.getActiveSheet();
+        let range = sheet.getDataRange();
+        var lastColumn = range.getLastColumn();
+        let lastYear:Number = new Date().getFullYear();
+        lastRow = range.getLastRow() + 1;
+
+
+        let lines = data2.get("GLUC").split("\n");
+        let grid = range.getValues();
+        grid = grid.filter(x => x[5] == "GLUC");
+        let grid2;
+        for (var i = 0; i < lines.length; i++) {
+            let c = lines[i].split("\t");
+            if (c.length > 4) {
+                let dateParts = c[0].split(" ");
+                let value = c[4];
+                dt = Utils.getDateFromDMY(dateParts[0]);
+                if ( dt.getFullYear() != lastYear )
+                {
+                    year = dt.getFullYear();
+                    fileName = `${year}_data`;
+                    ss = Utils.getCreateSpreadSheet(this.folder, fileName, "Master,Detail", data2.getColNames());
+                    sheet = ss.getActiveSheet();
+                    range = sheet.getDataRange();
+                    lastColumn = range.getLastColumn();
+                    lastRow = range.getLastRow() + 1;
+                    lastYear = dt;
+                }
+                days = Utils.getDays(dt);
+                let minutes = Utils.getMinutes(dateParts[1]);
+
+                grid2 = grid.filter(x => x[3] == days.toString() &&
+                    x[4] == minutes.toString());
+
+                if (grid2.length == 0) {
+                    data2.update("ID", id.toString());
+                    data2.update("ROW", lastRow.toString());
+                    data2.update("DAYS", days.toString());
+                    data2.update("MINUTES", minutes.toString());
+                    data2.update("GLUC", value);
+                    let v = data2.getColValues();
+                    sheet.appendRow(v);
+                    id++;
+                    lastRow++;
+                }
+            }
+        }
+        this.updateId("Id", id);
+        return id;
+    }
+
     processForm(Data: KVPCollection, records: Array<RecordItemBase>): number {
-        let dr = new DomainResponse();
         SysLog.log(0, "data received", "processForm()", JSON.stringify(Data));
         SysLog.log(0, "records", "processForm()", JSON.stringify(records));
+        let recType = Data.get("REC_TYPE");
+        if (recType == "GLUC")
+            return this.importGLUC(Data);
+        else if ( recType == "LEG")
+            return this.importLegacy(Data);
 
         let data2 = new KVPCollection();
         data2.initialize("ROW,ID,INACTIVE,DAYS,MINUTES");
@@ -167,60 +257,47 @@ export class Service {
 
 
         let id = this.getId("Id");
-        let fecha = data2.get("FECHA"); 
+        let fecha = data2.get("FECHA");
         let dt = Utils.getDateFromYMD(fecha);
         let days = Utils.getDays(dt);
-        let recType = data2.get("REC_TYPE");
-        let year = fecha.substring(0,4);
+        let year = fecha.substring(0, 4);
         let hora = data2.get("HORA");
         let fileName = `${year}_data`;
         let lastRow = 2;
-        let ss = Utils.getCreateSpreadSheet(this.folder,fileName, "Master,Detail", data2.getColNames());
+        let ss = Utils.getCreateSpreadSheet(this.folder, fileName, "Master,Detail", data2.getColNames());
         let sheet = ss.getActiveSheet();
         let range = sheet.getDataRange();
         var lastColumn = range.getLastColumn();
-        lastRow = range.getLastRow()+1;
+        lastRow = range.getLastRow() + 1;
 
-        data2.update("ID",id.toString());
-        data2.update("ROW",lastRow.toString());
-        data2.update("DAYS",days.toString());
-        data2.update("MINUTES",Utils.getMinutes(hora).toString());
+        data2.update("ID", id.toString());
+        data2.update("ROW", lastRow.toString());
+        data2.update("DAYS", days.toString());
+        data2.update("MINUTES", Utils.getMinutes(hora).toString());
+
 
         let v = data2.getColValues().split(",");
         sheet.appendRow(v);
 
-        if ( records != null && records.length > 0 )
-        {
+        if (records != null && records.length > 0) {
             sheet = ss.getSheetByName("Detail");
             range = sheet.getDataRange();
             lastRow = range.getLastRow();
 
             data2 = new KVPCollection();
             data2.initialize("ROW,IDMASTER,INACTIVE,ITEMID,CANT");
-            if ( lastRow < 2)
-            {
+            if (lastRow < 2) {
                 let cols = data2.getColNames().split(",");
                 sheet.appendRow(cols);
             }
             lastRow++;
 
-            for(var i=0; i< records.length; i++)
-            {
-                let row = [lastRow,id,"",records[i].itemId,records[i].cant];
+            for (var i = 0; i < records.length; i++) {
+                let row = [lastRow, id, "", records[i].itemId, records[i].cant];
                 sheet.appendRow(row);
                 lastRow++;
             }
-
         }
-
-        //todo: calculate numbner of days
-
-        
-
-
         return id;
     }
-
-
-
 }
