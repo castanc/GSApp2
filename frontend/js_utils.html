@@ -11,8 +11,8 @@
             control.innerHTML = html;
         }
         else {
+            console.log("ERROR: writeInnerHtml()")
             console.log(`control ${controlId} not found`);
-            console.log(html);
         }
 
     }
@@ -43,17 +43,25 @@
         let select = document.getElementById(fieldId);
         if ( select != undefined )
         {
-            console.log(select.options);
-            console.log(select.selectedIndex);
-            console.log(select.options[select.selectedIndex]);
+            // console.log(select.options);
+            // console.log(select.selectedIndex);
+            // console.log(select.options[select.selectedIndex]);
             return select.options[select.selectedIndex];
         }
         else return "";
     }
 
 
+    function showMessage(text) {
+        writeInnerHtml("result", text);
+    }
+
+    function showError(text) {
+        writeInnerHtml("error", text);
+    }
+
+
     function showDiv(divId, value) {
-        console.log("showdiv() " + divId);
         let div = document.getElementById(divId);
         if (div != undefined) {
             if (value)
@@ -61,7 +69,10 @@
             else
                 div.style.display = "none";
         }
-        else console.log("div not found");
+        else{
+            console.log(`ERROR div not found ${divId}` );
+            showError(`ERROR div not found ${divId}`);
+        } 
     }
 
     function setHtml(id, html) {

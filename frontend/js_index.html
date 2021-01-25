@@ -35,9 +35,24 @@
         for (var i = 0; i < records.length; i++) {
             records[i].id = i;
         }
-        renderRecordsAsTable(title);
+        renderFoodItems();
     }
 
+    function removeDrug(title, id) {
+        records = records.filter(x => x.id != id);
+        for (var i = 0; i < records.length; i++) {
+            records[i].id = i;
+        }
+        renderDrugItems();
+    }
+
+    function removeExe(title, id) {
+        records = records.filter(x => x.id != id);
+        for (var i = 0; i < records.length; i++) {
+            records[i].id = i;
+        }
+        renderExeItems();
+    }
 
     function replace(text, value, newValue) {
         try {
@@ -77,71 +92,75 @@
         }
     }
 
-    function calcDivision(id,value)
-    {
+    function calcDivision(id, value) {
 
     }
 
-    function renderRecordsAsTable(title) {
+    function renderFoodItems() {
         let row = "";
         if (records.length > 0) {
 
-            row = `<tr>
-            <td>Remove</td>
-            <td>${title}</td>
-            <td>Cant</td>
-            <td>Unidades</td>
-            <td>Image</td>
-            </tr>`;
+            row = `<div class="row row-fat">
+            <div class="col-md-1"></div>
+            <div class="col-md-7">Food Item</div>
+            <div class="col-md-2">Cant</div>
+            <div class="col-md-1">Un</div>
+            <div class="col-md-1"></div>
+            </div>
+            `;
 
             for (var i = 0; i < records.length; i++) {
                 row = `${row}
-            <tr>
-            <td><btn type="button" class ="btn btn-danger" onclick="removeItem('${title}',${i})">Remove</button></td>
-            <td>${records[i].descr}</td>
-            <td><input type="number" id="q{${i}} name="q${i}" placeholder="Cant" value="${records[i].cant}" onchange="setRecord(${i},this.value)"></td>
-            <td>${records[i].unit}</td>
-            <td><img src="${records[i].url}" class="thumb"></img></td>
-            </tr>            
-            `;
+            <div class="row row-fat">
+                <div class="col-md-1 cursorPointer"><i class="fas fa-trash-alt"  onclick="removeItem('${DrugItems}',${i})"></i></div>
+                <div class="col-md-7">${records[i].descr}</div>
+                <div class="col-md-2">
+                    <input type="number" id="q{${i}} name="q${i}" placeholder="Cant" value="${records[i].cant}" onchange="setRecord(${i},this.value)">
+                </div>
+                <div class="col-md-1">
+                    ${records[i].unit}
+                </div>
+
+                <div class="col-md-1">
+                    <img src="${records[i].url}" class="thumb"></img>
+                    </div>
+            </div>`;
             }
-            row = `<table class="table table-striped">${row}</table>`;
         }
-        console.log("renderRecordsAsTable()");
-        console.log(row);
         writeInnerHtml("rows", row);
+
     }
+
+
 
 
     function renderDrugItems() {
+
         let row = "";
         if (records.length > 0) {
 
-            row = `<tr>
-            <td>Remove</td>
-            <td>Drug Items</td>
-            <td>Cant</td>
-            <td>/</td>
-            <td>Unidades</td>
-            <td>Image</td>
-            </tr>`;
+            row = `<div class="row row-fat">
+            <div class="col-md-1"></div>
+            <div class="col-md-8">Drug Item</div>
+            <div class="col-md-2">Cant</div>
+            <div class="col-md-1"></div>
+            </div>
+            `;
 
             for (var i = 0; i < records.length; i++) {
                 row = `${row}
-            <tr>
-            <td><btn type="button" class ="btn btn-danger" onclick="removeItem('${DrugItems}',${i})">Remove</button></td>
-            <td>${records[i].descr}</td>
-            <td><input type="number" id="q{${i}} name="q${i}" placeholder="Cant" value="${records[i].cant}" onchange="setRecord(${i},this.value)"></td>
-            <td><input type="number" id="d{${i}} name="d${i}" placeholder="Fraction" value="${records[i].divisor}" onchange="calcDivision(${i},this.value)"></td>
-            <td>${records[i].unit}</td>
-            <td><img src="${records[i].url}" class="thumb"></img></td>
-            </tr>            
-            `;
+            <div class="row row-fat">
+                <div class="col-md-1 cursorPointer"><i class="fas fa-trash-alt"  onclick="removeDrug('${DrugItems}',${i})"></i></div>
+                <div class="col-md-8" >${records[i].descr}</div>
+                <div class="col-md-2">
+                    <input type="number" id="q{${i}} name="q${i}" placeholder="Cant" value="${records[i].cant}" onchange="setRecord(${i},this.value)">
+                </div>
+                <div class="col-md-1">
+                    <img src="${records[i].url}" class="thumb"></img>
+                    </div>
+            </div>`;
             }
-            row = `<table class="table table-striped">${row}</table>`;
         }
-        console.log("renderRecordsAsTable()");
-        console.log(row);
         writeInnerHtml("rows", row);
     }
 
@@ -151,27 +170,27 @@
         if (records.length > 0) {
 
             row = `<div class="row row-fat">
-            <div class="col-md-1">Remove</div>
-            <div class="col-md-6">Sport</div>
-            <div class="col-md-1">Distance</div>
-            <div class="col-md-1">Units</div>
-            <div class="col-md-3">Time</div>
+            <div class="col-md-1"></div>
+            <div class="col-md-4">Sport</div>
+            <div class="col-md-1">Dist</div>
+            <div class="col-md-1">Un</div>
+            <div class="col-md-2">Time</div>
             </div>
             `;
 
             for (var i = 0; i < records.length; i++) {
                 row = `${row}
-            <div class="row">
+            <div class="row row-fat">
+                <div class="col-md-1 cursorPointer"><i class="fas fa-trash-alt"  onclick="removeExe('${DrugItems}',${i})"></i></div>
+                <div class="col-md-4">${records[i].descr}</div>
                 <div class="col-md-1">
-                    <btn type="button" class ="btn btn-danger" onclick="removeItem('${DrugItems}',${i})">Remove</button>
+                    <input type="number" id="q{${i}} name="q${i}" placeholder="Dist" value="${records[i].cant}" onchange="setRecord(${i},this.value)">
                 </div>
-                <div class="col-md-6">${records[i].descr}</div>
-                <div class="col-md-1">
-                    <input type="number" id="q{${i}} name="q${i}" placeholder="Cant" value="${records[i].cant}" onchange="setRecord(${i},this.value)">
+                <div class="col-md-2">
+                    ${records[i].unit}
                 </div>
-                <div class="col-md-1">${records[i].unit}</div>
                 <div class="col-md-3">
-                    <input type="number" id="h{${i}} name="h${i}" placeholder="HH:MM:SS" value="${records[i].hh}" onchange="setRecord(${i},this.value)">
+                    <input type="number" id="h{${i}} name="t${i}" placeholder="HH:MM:SS" pattern="^([0-1]?[0-9]|2[0-4]):([0-5][0-9])(:[0-5][0-9])?$" value="${records[i].time}" onchange="setRecord(${i},this.value)">
                 </div>
             </div>`;
             }
@@ -242,7 +261,6 @@
     }
 
     function initializeData(colList) {
-        console.log(`initializeData( ${colList}`);
         let c = colList.split(',');
         Data = new KVPCollection();
         for (var i = 0; i < c.length; i++) {
@@ -252,86 +270,48 @@
 
     function processData(recType, data) {
         records = [];
-        console.log(`processData(): ${recType}`);
+        let htmlSelect = "";
         if (recType == "FOOD") {
-            renderRecordsAsTable("Food Item");
+            renderFoodItems();
             requiredFields = "REC_TYPE,FECHA,HORA,MEAL_TYPES";
             initializeData(requiredFields);
-            let selectMealType = cache.get("MT");
-            if (selectMealType == null || selectMealType == "") {
-                selectMealType = getHtmlSelectFiltered(Items.arr, "MT", "Select Meal Type", true);
-                cache.add("MT", selectMealType);
-            }
-            writeInnerHtml("MEAL_TYPES", selectMealType);
+            htmlSelect = getHtmlSelectFiltered(Items.arr, "MT", "Select Meal Type", true);
+            writeInnerHtml("MEAL_TYPES", htmlSelect);
 
-            let selectFoodCategory = cache.get("FC");
-            if (selectFoodCategory == null || selectFoodCategory == "") {
-                selectFoodCategory = getHtmlSelectFiltered(Items.arr, "FC", "Select Category");
-                cache.add("FC", selectFoodCategory);
-            }
-            writeInnerHtml("FOOD_CATEGORIES", selectFoodCategory);
-            if (FoodItems.arr.length == 0) {
-                google.script.run.withFailureHandler(failureHandler).withSuccessHandler(getFoodItemsHandler)
-                    .getFoodItems();
-            }
+            htmlSelect = getHtmlSelectFiltered(Items.arr, "FC", "Select Category");
+            writeInnerHtml("FOOD_CATEGORIES", htmlSelect);
         }
         else if (recType == "EXE") {
             requiredFields = "REC_TYPE,FECHA,HORA";
             initializeData(requiredFields);
-            console.log("ExeItems data: ",ExeItems);
-            if (ExeItems.arr.length == 0) {
-                console.log("getting ExeItmes");
-                google.script.run.withFailureHandler(failureHandler).withSuccessHandler(processExeItemsRequest)
-                    .getExeItems();
-            }
-            else {
-                let selectExeType = cache.get("ExeItems");
-                if (selectExeType == null || selectExeType == "") {
-                    selectExeType = getSelect("ExeItems", ExeItems.arr, 0, 1, "Select Sport", "", true, 1);
-                    cache.add("ExeItems", selectExeType);
-                    writeInnerHtml("EXE_ITEMS", selectExeType);
-                }
-            }
-
+            htmlSelect = getSelect("ExeItems", ExeItems.arr, 0, 1, "Select Sport", "", true, 1);
+            writeInnerHtml("EXE_ITEMS", htmlSelect);
         }
         else if (recType == "DRUG") {
-            console.log("processing DRUGS");
             requiredFields = "REC_TYPE,FECHA,HORA,DRUGID,CANT";
-            console.log("DrugItems data: ",DrugItems);
             initializeData(requiredFields);
-            if (DrugItems.arr.length == 0) {
-                console.log("getting DrugItmes");
-                google.script.run.withFailureHandler(failureHandler).withSuccessHandler(getDrugItemsHandler)
-                    .getDrugItems();
-            }
-            else {
-                let selectDrugType = cache.get("DrugItems");
-                if (selectDrugType == null || selectDrugType == "") {
-                    selectDrugType = getSelect("DrugItems", DrugItems.arr, 0, 1, "Select Drug", "", true, 1);
-                    cache.add("DrugItems", selectDrugType);
-                    writeInnerHtml("DRUG_ITEMS", selectDrugType);
-                }
-            }
+                    htmLSelect = getSelect("DrugItems", DrugItems.arr, 0, 1, "Select Drug", "", true, 1);
+                    writeInnerHtml("DRUG_ITEMS", htmLSelect);
         }
         else if (recType == "PRS") {
-            let selectDrugType = cache.get("SISTOLIC,DIASTOLIC");
+            requiredFields = "SISTOLIC,DIASTOLIC";
             initializeData(requiredFields);
         }
         else if (recType == "WEIGHT") {
-            let selectDrugType = cache.get("PESO,FAT,BMI");
+            requiredFields = "PESO,FAT,BMI";
             initializeData(requiredFields);
         }
         else if (recType == "EVENT") {
-            let selectDrugType = cache.get("EVENTID,DETAILS");
+            requiredFields = "EVENTID,DETAILS";
             initializeData(requiredFields);
 
         }
         else if (recType == "GLUC") {
-            let selectDrugType = cache.get("GLUC");
+            requiredFields = "GLUC";
             initializeData(requiredFields);
         }
         else if (recType == "LEG") {
-            let selectDrugType = cache.get("LEGACY");
+            requiredFields = "LEGACY";
             initializeData(requiredFields);
         }
 
@@ -350,7 +330,6 @@
 
 
     function processForm() {
-        console.log("processForm() Data:");
         if (document.forms["myForm"].checkValidity()) {
             Data.update("FECHA", getValue("FECHA"));
             Data.update("HORA", getValue("HORA"));
@@ -386,20 +365,17 @@
 
     function processExeItemsRequest(json) {
         ExeItems.arr = JSON.parse(json);
-        let selectExeType = getSelect("ExeItems", ExeItems.arr, 0, 1, "Select Sport", "", true, 0);
-        cache.add("ExeItems", selectExeType);
+        console.log("processExeItemsRequest()")
+        console.log("ExeItems", ExeItems);
+        let selectExeType = getSelect("ExeItems", ExeItems.arr, 0, 1, "Select Sport", "", true, 1);
         writeInnerHtml("EXE_ITEMS", selectExeType);
     }
 
 
     function processDrugItemsRequest(json) {
-        console.log("processDrugItemsRequest()");
         DrugItems.arr = JSON.parse(json);
-        console.log("DrugItems.arr",DrugItems.arr);
         let selectDrugType = getSelect("DrugItems", DrugItems.arr, 0, 1, "Select Drug", "", true, 1);
-        cache.add("DrugItems", selectDrugType);
         writeInnerHtml("DRUG_ITEMS", selectDrugType);
-        console.log("DrugItems", DrugItems);
     }
 
     function processResponse(json) {
@@ -456,11 +432,25 @@
         //google.script.run.withSuccessHandler(onSuccess)
         //    .loadSettings();
         refreshDate();
+        if (FoodItems.arr.length == 0) {
+            google.script.run.withFailureHandler(failureHandler).withSuccessHandler(getFoodItemsHandler)
+                .getFoodItems();
+        }
+        if (ExeItems.arr.length == 0) {
+                google.script.run.withFailureHandler(failureHandler).withSuccessHandler(processExeItemsRequest)
+                    .getExeItems();
+            }
+            if (DrugItems.arr.length == 0) {
+                google.script.run.withFailureHandler(failureHandler).withSuccessHandler(getDrugItemsHandler)
+                    .getDrugItems();
+            }
+
+
+
     }
 
     //************************************ event handlers ***********************************
     function failureHandler(error) {
-        console.log("failureHandler", error);
         writeInnerHtml("error", error);
     }
 
@@ -482,9 +472,8 @@
 
 
 
-    function onblurField(id,value)
-    {
-        Data.update(id,value);
+    function onblurField(id, value) {
+        Data.update(id, value);
     }
 
     function onchange_SP(e) {
@@ -492,18 +481,20 @@
     }
 
     function onchange_RT(e) {
-        console.log(`onchange_RT( ${e})`);
-        writeInnerHtml("result","");
-        writeInnerHtml("error","");
+        writeInnerHtml("result", "");
+        writeInnerHtml("error", "");
         Data.update("REC_TYPE", e);
 
 
         recType = e;
-        let html = cache.get(recType);
+        let html = "";
         let = url = "";
         records = [];
-        renderRecordsAsTable();
+        //renderFoodItems();
+        writeInnerHtml("rows","");
+
         if (html.length == 0) {
+            console.log("getting form from server");
             let row = Items.arr.filter(x => x[0] == "RT" && x[1] == recType);
             if (row.length > 0)
                 url = row[3];
@@ -511,8 +502,9 @@
             google.script.run.withFailureHandler(failureHandler).withSuccessHandler(processResponse)
                 .getForm("RT", recType, url);
         }
-        else
+        else {
             writeInnerHtml("content", html);
+        }
 
     }
 
@@ -527,24 +519,14 @@
 
     function onchange_FC(e) {
         foodCategory = e;
-        let selectFoodItems = cache.get(foodCategory);
-        if (selectFoodItems == null || selectFoodItems == "") {
-            selectFoodItems = getHtmlSelectFiltered(FoodItems.arr, foodCategory, "Select Food Item", "", "FoodItems");
-            cache.add(foodCategory, selectFoodItems);
-        }
-        console.log(`foodCategory:${e}`, selectFoodItems);
-        console.log(FoodItems.arr);
-        sessionStorage.setItem("fooditems", JSON.stringify(FoodItems.arr));
-        sessionStorage.setItem("selectFoodItems", JSON.stringify(selectFoodItems));
+        let selectFoodItems = getHtmlSelectFiltered(FoodItems.arr, foodCategory, "Select Food Item", "", "FoodItems");
         writeInnerHtml("FOOD_ITEMS", selectFoodItems);
-        console.log(`foodCategory ${e}`, selectFoodItems)
     }
 
 
     function onchange_DrugItems(e) {
-        Data.update("DRUGID",e);
+        Data.update("DRUGID", e);
         let di = DrugItems.arr.filter(x => x[0] == e);
-        console.log("onchange_DrugItems()",e,di);
         if (di.length > 0) {
             record = {};    // new RecordItem();
             record.descr = di[0][1];
@@ -557,15 +539,13 @@
             records.push(record);
             renderDrugItems();
         }
-        console.log("records",records);
-        
+
     }
 
 
     function onchange_ExeItems(e) {
-        Data.update("SPORTID",e);
+        Data.update("SPORTID", e);
         let di = ExeItems.arr.filter(x => x[0] == e);
-        console.log("onchange_DrugItems()",e,di);
         if (di.length > 0) {
             record = {};    // new RecordItem();
             record.descr = di[0][1];
@@ -574,23 +554,19 @@
             record.cant = di[0][3];
             record.itemId = Number(e);
             record.id = records.length;
-            record.hh = "";
-            record.mm = "";
-            record.ss = "";
+            record.time = "";
             records.push(record);
             renderExeItems();
         }
-        console.log("records",records);
-        
+
     }
 
-    
+
 
     //todo: remove assigned items from combo
     function onchange_FoodItems(e) {
-        sessionStorage.setItem("FoodItems",JSON.stringify(FoodItems.arr));
+        sessionStorage.setItem("FoodItems", JSON.stringify(FoodItems.arr));
         let fi = FoodItems.arr.filter(x => x[1] == e);
-        console.log("onchange_FoodItems()",e,fi);
         if (fi.length > 0) {
             record = {};    // new RecordItem();
             record.descr = fi[0][2];
@@ -601,22 +577,13 @@
             record.itemId = Number(e);
             record.id = records.length;
             records.push(record);
-            renderRecordsAsTable("Food Item");
+            renderFoodItems();
         }
-        console.log("records",records);
-        
+
     }
 
-    function showMessage(text) {
-        writeInnerHtml("result", text);
-    }
-
-    function writeError(text) {
-        writeInnerHtml("error", text);
-    }
 
     function onSuccess(html) {
-        console.log("onSUccess: html:", html);
         showDiv('secondary', false);
         refreshDate();
 

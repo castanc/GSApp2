@@ -143,10 +143,10 @@ export class Service {
         if (formUrl == null)
             formUrl = "";
 
-        if (formUrl.length > 0)
-            html = Utils.getDocTextByName(formUrl);
-        else
-            html = Utils.getDocTextByName(formId);
+        // if (formUrl.length > 0)
+        //     html = Utils.getDocTextByName(formUrl);
+        // else
+        //     html = Utils.getDocTextByName(formId);
 
         if (html == null || html.length == 0) {
             html = HtmlService.createTemplateFromFile(`frontend/${formId}`).evaluate().getContent();
@@ -166,7 +166,7 @@ export class Service {
         else {
             this.result = -1;
             this.message = `form ${formId} not found`;
-            response.addError("error", `form ${formId} not found`, 404);
+            //response.addError("error", `form ${formId} not found`, 404);
         }
 
         return response;
