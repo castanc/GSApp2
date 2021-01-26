@@ -1,3 +1,5 @@
+import { SysLog } from "../backend/SysLog";
+import { Utils } from "../backend/Utils";
 import { KeyValuePair } from "./KeyValuePair";
 
 export class KVPCollection {
@@ -8,13 +10,21 @@ export class KVPCollection {
         this.arr.push(new KeyValuePair<string, string>(key, value));
     }
 
-    update(key, value) {
+    update(key, value, addIfNew = true) {
         let existing = this.arr.filter(x => x.key == key);
         if (existing.length > 0)
             existing[0].value = value;
-        else
+        else if ( addIfNew)
             this.arr.push(new KeyValuePair<string, string>(key, value));
     }
+
+    updateOnly(key, value) {
+        SysLog.log(0,"updateOnly() value length:",value.length.toString());
+        let existing = this.arr.filter(x => x.key == key);
+        if (existing.length > 0)
+            existing[0].value = value;
+    }
+
 
     get(key): string {
         let existing = this.arr.filter(x => x.key == key);
@@ -33,7 +43,7 @@ export class KVPCollection {
 
     addRange(data: KVPCollection) {
         for (var i = 0; i < data.arr.length; i++) {
-            this.add(data.arr[i].key, data.arr[i].value);
+            this.update(data.arr[i].key, data.arr[i].value);
         }
     }
 

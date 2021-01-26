@@ -111,7 +111,7 @@
 
             for (var i = 0; i < records.length; i++) {
                 row = `${row}
-            <div class="row row-fat">
+            <div class="fat-row">
                 <div class="col-md-1 cursorPointer"><i class="fas fa-trash-alt"  onclick="removeItem('${DrugItems}',${i})"></i></div>
                 <div class="col-md-7">${records[i].descr}</div>
                 <div class="col-md-2">
@@ -452,10 +452,12 @@
                 google.script.run.withFailureHandler(failureHandler).withSuccessHandler(getDrugItemsHandler)
                     .getDrugItems();
             }
-
-
-
+        setTimeout(function(){
+            // This hides the address bar:
+            window.scrollTo(0, 1);
+        }, 0);
     }
+
 
     //************************************ event handlers ***********************************
     function failureHandler(error) {

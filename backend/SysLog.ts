@@ -26,15 +26,16 @@ export class SysLog {
             let ts = Utils.getTimeStamp();
             let row = [ts, "INFO", method, msg, additional];
             this.ssLog.appendRow(row);
-            Logger.log(JSON.stringify(row));
+            Logger.log(row);
         }
     }
 
     static logException(ex, method = "", additional = "") {
         SysLog.initialize();
         let ts = Utils.getTimeStamp();
-        let row = [ts, "EXCEPTION", ex.messaage, method, additional, ex.stacktrace,];
+        let row = [ts, "EXCEPTION", ex.messaage, method, additional, ex.stack,ex.prototype.fileName,ex.prototype.lineNumber,ex.prototype.columnNumber];
         this.ssLog.appendRow(row);
+
         Logger.log(JSON.stringify(row));
     }
 

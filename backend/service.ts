@@ -19,6 +19,7 @@ export class Service {
     constructor() {
         this.folder = Utils.getCreateFolder(G.FolderName);
         this.db = Utils.openSpreadSheet(G.DatabaseUrl);
+        SysLog.level = 0;
     }
 
     //build html select
@@ -60,8 +61,6 @@ export class Service {
         let arr = new Array<Array<string>>();
         arr = Utils.getData(this.db, tableName).filter(x => x[0] == groupId);
         let html = this.getSelect(groupId, arr, 1, 2, title, value, required);
-        SysLog.log(0, "parameters", "getHtmlSelectFiltered", `tableName: ${tableName} groupId: ${groupId} title: ${title} value:[${value} required:${required}]`);
-        SysLog.log(0, "select RT", "getHtmlSelectFiltered()", html);
         return html;
     }
 
@@ -96,7 +95,6 @@ export class Service {
         let records = new Array<RecordItem>();
         let record = new RecordItem();
 
-        SysLog.log(0, "arrays", "code.ts getDataDeclarations()", names);
 
         let js = "";
         for (var i = 0; i < nameList.length; i++) {
@@ -106,7 +104,6 @@ export class Service {
 
         //js = `${js}let record = ${JSON.stringify(record)};`;
         //js = `${js}let records = ${JSON.stringify(records)};`;
-        SysLog.log(0, "getNamedArray()", js);
         return js;
 
     }
@@ -172,8 +169,178 @@ export class Service {
         return response;
     }
 
-    importLegacy(Data: KVPCollection): number {
-        return 0;
+    importLegacy(Data: KVPCollection, colSep ="\t", lineSep = "\n"): number {
+        let data2 = new KVPCollection();
+        data2.initialize("ROW,ID,INACTIVE,DAYS,MINUTES,REC_TYPE,FECHA,HORA,DATA,DATA1,DATA2,DATA3");
+        data2.addRange(Data);
+
+        SysLog.level = 1;
+
+
+        let id = this.getId("Id");
+        let fecha = data2.get("FECHA");
+        let dt = Utils.getDateFromYMD(fecha);
+        let days = 0;
+        let year = fecha.substring(0, 4);
+        let hora = data2.get("HORA");
+        let fileName = `${year}_data`;
+        let lastRow = 2;
+        let grid2;
+        let ss;
+        let sheet;
+        let range;
+        let lastColumn=0;
+        let lastYear = new Date().getFullYear();
+        let grid;
+        let value;
+        let recType="";
+        let drugItems = Utils.getData(this.db,"DrugItems");
+        let records = new Array<RecordItemBase>();
+        let c;
+        let minutes = 0;
+        let v;
+
+
+        let legacyData = data2.get("LEGACY");
+        let lines = legacyData.split(lineSep);
+
+        for (var i = 0; i < lines.length; i++) {
+            c = lines[i].split(colSep);
+            if (c.length > 4) {
+                recType =c[1].toUpperCase();
+                fecha = c[2];
+                dt = Utils.getDateFromYMD(fecha);
+                if ( dt == null )
+                    continue;
+
+                days = Utils.getDays(dt);                    
+                hora = c[3];
+                value = c[4];
+                minutes = Utils.getMinutes(hora);
+
+
+                if ( dt.getFullYear() != lastYear )
+                {
+                    year = dt.getFullYear();
+                    fileName = `${year}_data`;
+                    ss = Utils.getCreateSpreadSheet(this.folder, fileName, "Master,Detail", data2.getColNames());
+                    sheet = ss.getActiveSheet();
+                    range = sheet.getDataRange();
+                    lastColumn = range.getLastColumn();
+                    lastRow = range.getLastRow() + 1;
+                    lastYear = dt;
+                    grid = range.getValues();
+                }
+
+                grid2 = grid.filter(x => x[3] == days.toString() &&
+                    x[4] == minutes.toString() &&
+                    x[5] == recType);
+                
+                    
+
+                if (grid2.length == 0) {
+                    data2.updateOnly("ID", id.toString());
+                    data2.updateOnly("ROW", lastRow.toString());
+                    data2.updateOnly("DAYS", days.toString());
+                    data2.updateOnly("MINUTES", minutes.toString());
+                    data2.updateOnly("FECHA",fecha);
+                    data2.updateOnly("HORA",hora);
+
+                    let r = new RecordItemBase();
+                    r.id = id;
+
+
+
+                    data2.updateOnly("REC_TYPE", recType);
+                    if ( recType == "DRUG"){
+                        data2.updateOnly("DATA", "");
+                        let drug = drugItems.filter(x=>x[5]== value)
+                        if (drug.length > 0 )
+                        {
+                            r.cant = 1;
+                            r.itemId = Number(drug[0][0]);
+                            records.push(r);
+                        }
+                    }
+                    else if ( recType == "EXE"){
+                        data2.updateOnly("DATA", "");
+                        r.itemId = 0;
+                        r.cant = Number(value);
+                        if ( c.length < 4)
+                        {
+                            r.time = Utils.getSeconds(c[5]).toString();
+                            r.data2 = c[5];
+                        }
+                        records.push(r);
+                    }
+                    else if ( recType == "WGT"){
+                        data2.updateOnly("REC_TYPE", "WEIGHT");
+                        if ( c.length > 7 )
+                        {
+                            data2.updateOnly("DATA",value);
+                            data2.updateOnly("DATA1",c[5]);
+                            data2.updateOnly("DATA2",c[6]);
+                            data2.updateOnly("DATA3",c[7]);
+                        }
+                        else
+                            data2.updateOnly("DATA",value);
+                    }
+                    else if ( recType == "PRESURE"){
+                        data2.update("REC_TYPE", "PRS");
+                        if ( c.length > 5 )
+                        {
+                            data2.updateOnly("DATA",value);
+                            data2.updateOnly("DATA1",c[5]);
+                            data2.updateOnly("DATA2",c[6]);
+                        }
+                        else
+                            data2.updateOnly("DATA",value);
+                    }
+                    else
+                        data2.update("DATA",value);
+    
+                    data2.updateOnly("LEGACY","");
+                    v = data2.getColValues().split(",");
+                    sheet.appendRow(v);
+                    id++;
+                    lastRow++;
+
+                    if ( data2.arr.length > 13 )
+                    {
+                        SysLog.log(1,"COLNAMES","IMPROT LEGACY",data2.getColNames());
+                        SysLog.log(1,"IMPROT LEGACY","data growing horizontally");
+                        SysLog.log(1,"Data","IMPROT LEGACY",JSON.stringify(data2));
+                        SysLog.log(1,"v length","IMPROT LEGACY",v.length.toString());
+                        SysLog.log(1,"v tos end to sheet","IMPROT LEGACY",JSON.stringify(v));
+                        
+                        return 0;
+                    }
+
+                }
+            }
+        }
+        if (records != null && records.length > 0) {
+            sheet = ss.getSheetByName("Detail");
+            range = sheet.getDataRange();
+            lastRow = range.getLastRow();
+
+            data2 = new KVPCollection();
+            data2.initialize("ROW,IDMASTER,INACTIVE,ITEMID,CANT,DATA2");
+            if (lastRow < 2) {
+                let cols = data2.getColNames().split(",");
+                sheet.appendRow(cols);
+            }
+            lastRow++;
+
+            for (var i = 0; i < records.length; i++) {
+                let row = [lastRow, id, "", records[i].itemId, records[i].cant, records[i].time,records[i].data2];
+                sheet.appendRow(row);
+                lastRow++;
+            }
+        }
+        this.updateId("Id", id);
+        SysLog.log(0,"RETURNING FROM IMPORT LEGACY");
+        return id;
     }
 
     importGLUC(Data: KVPCollection): number {
@@ -196,6 +363,7 @@ export class Service {
         var lastColumn = range.getLastColumn();
         let lastYear:Number = new Date().getFullYear();
         lastRow = range.getLastRow() + 1;
+        let recType = "";
 
 
         let glucData = data2.get("GLUC");
@@ -205,14 +373,10 @@ export class Service {
             lines = data2.get("GLUC").split(";");
         }
         let grid = range.getValues();
-        SysLog.log(0,"grid before","importGLUC()",JSON.stringify(grid));
         grid = grid.filter(x => x[5] == "GLUC");
-        SysLog.log(0,"grid","importGLUC()",JSON.stringify(grid));
         let grid2;
         for (var i = 0; i < lines.length; i++) {
             let c = lines[i].split("\t");
-            if ( c.length < 2 )
-                c = lines[i].split(",");
             if (c.length > 4) {
                 let dateParts = c[0].split(" ");
                 let value = c[4];
@@ -232,7 +396,6 @@ export class Service {
                     lastRow = range.getLastRow() + 1;
                     lastYear = dt;
                     grid = range.getValues();
-                    SysLog.log(0,"grid after year change","importGLUC()",JSON.stringify(grid));
                 }
                 days = Utils.getDays(dt);
                 fecha = dateParts[0];
@@ -244,7 +407,6 @@ export class Service {
                 grid2 = grid.filter(x => x[3] == days.toString() &&
                     x[4] == minutes.toString());
                 
-                SysLog.log(0,"grid2 checking if exists","importGLUC()",JSON.stringify(grid2));
 
                 if (grid2.length == 0) {
                     data2.update("ID", id.toString());
@@ -265,7 +427,7 @@ export class Service {
         return id;
     }
 
-    processForm(Data: KVPCollection, records: Array<RecordItemBase>): number {
+    processForm(Data: KVPCollection, records: Array<RecordItemBase>, colSep="\t", lineSep = "\n"): number {
         SysLog.log(0, "data received", "processForm()", JSON.stringify(Data));
         SysLog.log(0, "records", "processForm()", JSON.stringify(records));
 
@@ -277,7 +439,7 @@ export class Service {
         if (recType == "GLUC")
             return this.importGLUC(Data);
         else if ( recType == "LEG")
-            return this.importLegacy(Data);
+            return this.importLegacy(Data, colSep,lineSep);
 
 
         let id = this.getId("Id");

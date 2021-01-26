@@ -201,47 +201,38 @@ export class Utils {
         return null;
     }
 
-    static getDateFromYMD(dtStr,sep:string="-")
-    {
+    static getDateFromYMD(dtStr, sep: string = "-") {
         let dt = null;
-        try
-        {
+        try {
             let p = dtStr.split(sep);
-            if ( p.length > 2)
-            {
-                dt = new Date(Number(p[0]),Number(p[1]-1),Number(p[2]));
+            if (p.length > 2) {
+                dt = new Date(Number(p[0]), Number(p[1] - 1), Number(p[2]));
             }
         }
-        catch(ex)
-        {
+        catch (ex) {
 
         }
         return dt;
     }
 
-    static getDateFromDMY(dtStr, sep:string = "-")
-    {
+    static getDateFromDMY(dtStr, sep: string = "-") {
         let dt = null;
-        try
-        {
+        try {
             let p = dtStr.split(sep);
-            if ( p.length > 2)
-            {
-                dt = new Date(Number(p[2]),Number(p[1]-1),Number(p[0]));
+            if (p.length > 2) {
+                dt = new Date(Number(p[2]), Number(p[1] - 1), Number(p[0]));
             }
         }
-        catch(ex)
-        {
+        catch (ex) {
 
         }
         return dt;
     }
 
 
-    static getDays(dt: Date, startDate:Date = new Date(1900,1,1))
-    {
+    static getDays(dt: Date, startDate: Date = new Date(1900, 1, 1)) {
         let dif = dt.getTime() - startDate.getTime();
-        dif = dif / (1000*60*60*24);
+        dif = dif / (1000 * 60 * 60 * 24);
         return dif;
 
     }
@@ -260,6 +251,39 @@ export class Utils {
         }
 
         return minutes;
+    }
+
+    static getSeconds(time: string, sep: string = ":"): number {
+        let minutes = 0;
+        let seconds = 0;
+        let p = time.split(sep);
+        let h = 0;
+        let m = 0;
+        let s= 0;
+        try {
+            if (p.length > 1) {
+                h = Number(p[0]);
+                m = Number(p[1]);
+                s = 0;
+                if (p.length > 2)
+                    s = Number(p[2]);
+            }
+            else
+            {
+                h = Number(time.substring(0,2));
+                m = Number(time.substring(2,2));
+                s = Number(time.substring(4,2));
+            }
+        }
+        catch (ex) {
+            h =0; 
+            m=0;
+            s=0;
+        }
+        minutes = h * 60 + m;
+        seconds = minutes * 60 + s;
+
+        return seconds;
     }
 
     static getRange(ss, sheetName: string, range: string = "") {
@@ -318,7 +342,7 @@ export class Utils {
                 text = text.replace(value, newValue);
         }
         catch (ex) {
-            console.log("eplace()","error",ex);
+            console.log("eplace()", "error", ex);
         }
         return text;
     }
