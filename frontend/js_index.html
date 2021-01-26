@@ -290,30 +290,32 @@
         else if (recType == "DRUG") {
             requiredFields = "REC_TYPE,FECHA,HORA,DRUGID,CANT";
             initializeData(requiredFields);
+            Data.update("REC_TYPE",recType);
                     htmLSelect = getSelect("DrugItems", DrugItems.arr, 0, 1, "Select Drug", "", true, 1);
                     writeInnerHtml("DRUG_ITEMS", htmLSelect);
         }
         else if (recType == "PRS") {
-            requiredFields = "SISTOLIC,DIASTOLIC";
+            requiredFields = "REC_TYPE,FECHA,HORA,SISTOLIC,DIASTOLIC,PULSE,PULSEOF";
             initializeData(requiredFields);
         }
         else if (recType == "WEIGHT") {
-            requiredFields = "PESO,FAT,BMI";
+            requiredFields = "REC_TYPE,FECHA,HORA,PESO,FAT,BMI";
             initializeData(requiredFields);
         }
         else if (recType == "EVENT") {
-            requiredFields = "EVENTID,DETAILS";
+            requiredFields = "REC_TYPE,FECHA,HORA,EVENTID,DETAILS";
             initializeData(requiredFields);
 
         }
         else if (recType == "GLUC") {
-            requiredFields = "GLUC";
+            requiredFields = "REC_TYPE,FECHA,HORA,GLUC";
             initializeData(requiredFields);
         }
         else if (recType == "LEG") {
-            requiredFields = "LEGACY";
+            requiredFields = "REC_TYPE,FECHA,HORA,LEGACY";
             initializeData(requiredFields);
         }
+        Data.update("REC_TYPE",recType);
 
     }
 
@@ -329,12 +331,18 @@
     }
 
 
+    function onBlurField(id, value) {
+        Data.update(id, value);
+    }
+
+
     function processForm() {
         if (document.forms["myForm"].checkValidity()) {
             Data.update("FECHA", getValue("FECHA"));
             Data.update("HORA", getValue("HORA"));
 
-
+            console.log("processForm()");
+            console.log(Data);
             let recordsBase = [];
             for (var i = 0; i < records.length; i++) {
                 let r = new RecordItemBase();
@@ -472,18 +480,17 @@
 
 
 
-    function onblurField(id, value) {
-        Data.update(id, value);
-    }
 
     function onchange_SP(e) {
         Data.update("SPORTID", e);
     }
 
     function onchange_RT(e) {
+        Data.update("REC_TYPE", e);
+        console.log("onchange_RT");
+        console.log(Data);
         writeInnerHtml("result", "");
         writeInnerHtml("error", "");
-        Data.update("REC_TYPE", e);
 
 
         recType = e;

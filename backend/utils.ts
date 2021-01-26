@@ -209,7 +209,7 @@ export class Utils {
             let p = dtStr.split(sep);
             if ( p.length > 2)
             {
-                dt = new Date(Number(p[0]),Number(p[1]),Number(p[2]));
+                dt = new Date(Number(p[0]),Number(p[1]-1),Number(p[2]));
             }
         }
         catch(ex)
@@ -227,7 +227,7 @@ export class Utils {
             let p = dtStr.split(sep);
             if ( p.length > 2)
             {
-                dt = new Date(Number(p[2]),Number(p[1]),Number(p[0]));
+                dt = new Date(Number(p[2]),Number(p[1]-1),Number(p[0]));
             }
         }
         catch(ex)
@@ -318,6 +318,7 @@ export class Utils {
                 text = text.replace(value, newValue);
         }
         catch (ex) {
+            console.log("eplace()","error",ex);
         }
         return text;
     }

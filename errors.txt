@@ -1,6 +1,1 @@
-backend/service.ts(47,63): error TS2493: Tuple type '[]' of length '0' has no element at index '0'.
-backend/Utils.ts(178,20): error TS2304: Cannot find name 'FileIterator'.
-backend/Utils.ts(190,20): error TS2304: Cannot find name 'FileIterator'.
-backend/Utils.ts(280,18): error TS2339: Property 'moveTo' does not exist on type 'File'.
-backend/Utils.ts(382,52): error TS2339: Property 'PLAIN_TEXT' does not exist on type '{ new (): MimeType; prototype: MimeType; }'.
-../../node_modules/@types/google-apps-script/google-apps-script.base.d.ts(512,13): error TS2403: Subsequent variable declarations must have the same type.  Variable 'console' must be of type 'Console', but here has type 'console'.
+{"arr":[{"value":"GLUC","key":"REC_TYPE"},{"key":"FECHA","value":"2021-01-25"},{"key":"HORA","value":"16:26"},{"key":"GLUC","value":"CESAR CASTANO,,,,,,,,;# 59320932,,,,,,,,;LAGY322S00919,,,,,,,,;Time,Record Type,Meal Insulin (units),Long Acting Insulin (units),Glucose (mg/dL),Ketone (mmol/L),Adjustment Insulin (units),User Change Insulin (units),;09/01/2020 15:48,2,,,127,,,,;10/01/2020 12:34,2,,,144,,,,;10/01/2020 18:46,2,,,107,,,,;11/01/2020 14:30,2,,,135,,,,;12/01/2020 13:26,2,,,133,,,,"}]}

@@ -198,16 +198,29 @@ export class Service {
         lastRow = range.getLastRow() + 1;
 
 
+        let glucData = data2.get("GLUC");
         let lines = data2.get("GLUC").split("\n");
+        if ( lines.length < 2 )
+        {
+            lines = data2.get("GLUC").split(";");
+        }
         let grid = range.getValues();
+        SysLog.log(0,"grid before","importGLUC()",JSON.stringify(grid));
         grid = grid.filter(x => x[5] == "GLUC");
+        SysLog.log(0,"grid","importGLUC()",JSON.stringify(grid));
         let grid2;
         for (var i = 0; i < lines.length; i++) {
             let c = lines[i].split("\t");
+            if ( c.length < 2 )
+                c = lines[i].split(",");
             if (c.length > 4) {
                 let dateParts = c[0].split(" ");
                 let value = c[4];
-                dt = Utils.getDateFromDMY(dateParts[0]);
+                dt = Utils.getDateFromDMY(dateParts[0],"/");
+
+                if ( dt == null )
+                    continue;
+                
                 if ( dt.getFullYear() != lastYear )
                 {
                     year = dt.getFullYear();
@@ -218,12 +231,20 @@ export class Service {
                     lastColumn = range.getLastColumn();
                     lastRow = range.getLastRow() + 1;
                     lastYear = dt;
+                    grid = range.getValues();
+                    SysLog.log(0,"grid after year change","importGLUC()",JSON.stringify(grid));
                 }
                 days = Utils.getDays(dt);
+                fecha = dateParts[0];
+                let fp = fecha.split("/");
+                fecha = `${fp[2]}-${fp[1]}-${fp[0]}`;
                 let minutes = Utils.getMinutes(dateParts[1]);
+                hora = dateParts[1];
 
                 grid2 = grid.filter(x => x[3] == days.toString() &&
                     x[4] == minutes.toString());
+                
+                SysLog.log(0,"grid2 checking if exists","importGLUC()",JSON.stringify(grid2));
 
                 if (grid2.length == 0) {
                     data2.update("ID", id.toString());
@@ -231,7 +252,9 @@ export class Service {
                     data2.update("DAYS", days.toString());
                     data2.update("MINUTES", minutes.toString());
                     data2.update("GLUC", value);
-                    let v = data2.getColValues();
+                    data2.update("FECHA",fecha);
+                    data2.update("HORA",hora);
+                    let v = data2.getColValues().split(",");
                     sheet.appendRow(v);
                     id++;
                     lastRow++;
@@ -245,15 +268,16 @@ export class Service {
     processForm(Data: KVPCollection, records: Array<RecordItemBase>): number {
         SysLog.log(0, "data received", "processForm()", JSON.stringify(Data));
         SysLog.log(0, "records", "processForm()", JSON.stringify(records));
-        let recType = Data.get("REC_TYPE");
-        if (recType == "GLUC")
-            return this.importGLUC(Data);
-        else if ( recType == "LEG")
-            return this.importLegacy(Data);
 
         let data2 = new KVPCollection();
         data2.initialize("ROW,ID,INACTIVE,DAYS,MINUTES");
         data2.addRange(Data);
+
+        let recType = data2.get("REC_TYPE");
+        if (recType == "GLUC")
+            return this.importGLUC(Data);
+        else if ( recType == "LEG")
+            return this.importLegacy(Data);
 
 
         let id = this.getId("Id");
