@@ -1,4 +1,6 @@
 import { DomainResponse } from "../models/DomainResponse";
+import { FileInfo } from "../Models/FileInfo";
+import { FileProcessItem } from "../models/FileProcessItem";
 import { GSResponse } from "../Models/GSResponse";
 import { KVPCollection } from "../models/KVPCollection";
 import { NamedArray } from "../models/NamedAray";
@@ -169,58 +171,71 @@ export class Service {
         return response;
     }
 
-    importLegacy(Data: KVPCollection, colSep ="\t", lineSep = "\n"): number {
-        let data2 = new KVPCollection();
-        data2.initialize("ROW,ID,INACTIVE,DAYS,MINUTES,REC_TYPE,FECHA,HORA,DATA,DATA1,DATA2,DATA3");
-        data2.addRange(Data);
-
-        SysLog.level = 1;
-
-
-        let id = this.getId("Id");
-        let fecha = data2.get("FECHA");
-        let dt = Utils.getDateFromYMD(fecha);
+    importBatchLegacy(url): FileProcessItem {
+        let dt;
         let days = 0;
-        let year = fecha.substring(0, 4);
-        let hora = data2.get("HORA");
-        let fileName = `${year}_data`;
+
+        let year = 0;
+        let hora = "";
+        let fileName = "";
         let lastRow = 2;
         let grid2;
         let ss;
         let sheet;
         let range;
-        let lastColumn=0;
+        let lastColumn = 0;
         let lastYear = new Date().getFullYear();
         let grid;
         let value;
-        let recType="";
-        let drugItems = Utils.getData(this.db,"DrugItems");
+        let recType = "";
+        let drugItems = Utils.getData(this.db, "DrugItems");
         let records = new Array<RecordItemBase>();
-        let c;
         let minutes = 0;
         let v;
+        let Y = 0;
+        let M = 0;
+        let D = 0;
+        let DOW = 0;
+        let fecha = "";
+        let i = 0;
+        let ssSource;
+        let gridSource;
+        let fpi = new FileProcessItem();
+        let c;
 
 
-        let legacyData = data2.get("LEGACY");
-        let lines = legacyData.split(lineSep);
+        ssSource = Utils.openSpreadSheet(url);
+        if (ssSource == null)
+            return fpi;
 
-        for (var i = 0; i < lines.length; i++) {
-            c = lines[i].split(colSep);
-            if (c.length > 4) {
-                recType =c[1].toUpperCase();
-                fecha = c[2];
-                dt = Utils.getDateFromYMD(fecha);
-                if ( dt == null )
+        let ssFile = Utils.getFileByName(ssSource.getName());
+        let fi = new FileInfo();
+        fi.setFileInfo(ssFile);
+        fpi.setFileInfo(fi);
+
+        sheet = ssSource.getActiveSheet();
+        var rangeData = sheet.getDataRange();
+        lastColumn = rangeData.getLastColumn();
+        fpi.totalRows = rangeData.getLastRow();
+        gridSource = rangeData.getValues();
+
+        let data2 = new KVPCollection();
+        data2.initialize("ROW,ID,INACTIVE,DAYS,MINUTES,Y,M,D,DOW,REC_TYPE,FECHA,HORA,DATA");
+
+        let id = this.getId("Id");
+
+        SysLog.log(0, "grid", "importLegacy()", `grid length: ${gridSource.length} lastColumn:${lastColumn}`);
+        for (i = 1; i < gridSource.length; i++) {
+            try {
+                Logger.log(`Processing ${fi.name} ${i}/${gridSource.length}`);
+                c = gridSource[i];
+                dt = c[2];
+                if (dt == null) {
+                    SysLog.log(0, "date is NULL", "improtBatchLegacy()", `${i} ${recType}`)
                     continue;
+                }
 
-                days = Utils.getDays(dt);                    
-                hora = c[3];
-                value = c[4];
-                minutes = Utils.getMinutes(hora);
-
-
-                if ( dt.getFullYear() != lastYear )
-                {
+                if (dt.getFullYear() != lastYear) {
                     year = dt.getFullYear();
                     fileName = `${year}_data`;
                     ss = Utils.getCreateSpreadSheet(this.folder, fileName, "Master,Detail", data2.getColNames());
@@ -231,94 +246,103 @@ export class Service {
                     lastYear = dt;
                     grid = range.getValues();
                 }
+                recType = c[1].toUpperCase();
+                fecha = Utils.getYMD(dt);
+                days = Utils.getDays(dt);
+                let tm = c[3];
+                //minutes = tm.getHours() * 60 + tm.getMinutes();
+                hora = Utils.getHM(tm);
+                minutes = Utils.getMinutes(hora);
+                value = c[4];
 
                 grid2 = grid.filter(x => x[3] == days.toString() &&
                     x[4] == minutes.toString() &&
                     x[5] == recType);
-                
-                    
 
-                if (grid2.length == 0) {
-                    data2.updateOnly("ID", id.toString());
-                    data2.updateOnly("ROW", lastRow.toString());
-                    data2.updateOnly("DAYS", days.toString());
-                    data2.updateOnly("MINUTES", minutes.toString());
-                    data2.updateOnly("FECHA",fecha);
-                    data2.updateOnly("HORA",hora);
+                if (grid2.length > 0) {
+                    SysLog.log(0, "row exists.", "improtBatchLegacy()", `${i} ${recType}`, JSON.stringify(grid2));
+                    continue;
+                }
 
-                    let r = new RecordItemBase();
-                    r.id = id;
+                Y = dt.getFullYear();
+                M = dt.getMonth() + 1;
+                D = dt.getDate();
+                DOW = dt.getDay();
+                data2.update("D", D.toString());
+                data2.update("M", M.toString());
+                data2.update("Y", Y.toString());
+                data2.update("DOW", DOW.toString());
+                data2.update("ID", id.toString());
+                data2.update("ROW", lastRow.toString());
+                data2.update("DAYS", days.toString());
+                data2.update("MINUTES", minutes.toString());
+                data2.update("FECHA", fecha);
+                data2.update("HORA", hora);
 
+                let r = new RecordItemBase();
+                r.id = id;
 
-
-                    data2.updateOnly("REC_TYPE", recType);
-                    if ( recType == "DRUG"){
-                        data2.updateOnly("DATA", "");
-                        let drug = drugItems.filter(x=>x[5]== value)
-                        if (drug.length > 0 )
-                        {
-                            r.cant = 1;
-                            r.itemId = Number(drug[0][0]);
-                            records.push(r);
-                        }
-                    }
-                    else if ( recType == "EXE"){
-                        data2.updateOnly("DATA", "");
-                        r.itemId = 0;
-                        r.cant = Number(value);
-                        if ( c.length < 4)
-                        {
-                            r.time = Utils.getSeconds(c[5]).toString();
-                            r.data2 = c[5];
-                        }
+                data2.update("REC_TYPE", recType);
+                if (recType == "DRUG") {
+                    data2.update("DATA", "");
+                    let drug = drugItems.filter(x => x[5] == value)
+                    if (drug.length > 0) {
+                        r.cant = 1;
+                        r.itemId = Number(drug[0][0]);
                         records.push(r);
                     }
-                    else if ( recType == "WGT"){
-                        data2.updateOnly("REC_TYPE", "WEIGHT");
-                        if ( c.length > 7 )
-                        {
-                            data2.updateOnly("DATA",value);
-                            data2.updateOnly("DATA1",c[5]);
-                            data2.updateOnly("DATA2",c[6]);
-                            data2.updateOnly("DATA3",c[7]);
-                        }
-                        else
-                            data2.updateOnly("DATA",value);
+                }
+                else if (recType == "EXE") {
+                    data2.update("DATA", "");
+                    r.itemId = 0;
+                    r.cant = Number(value);
+                    if (c.length < 4) {
+                        r.time = Utils.getSeconds(c[5]).toString();
+                        r.data2 = c[5];
                     }
-                    else if ( recType == "PRESURE"){
-                        data2.update("REC_TYPE", "PRS");
-                        if ( c.length > 5 )
-                        {
-                            data2.updateOnly("DATA",value);
-                            data2.updateOnly("DATA1",c[5]);
-                            data2.updateOnly("DATA2",c[6]);
-                        }
-                        else
-                            data2.updateOnly("DATA",value);
+                    records.push(r);
+                }
+                else if (recType == "WGT") {
+                    data2.update("REC_TYPE", "WEIGHT");
+                    if (c.length > 7) {
+                        data2.update("DATA", value);
+                        data2.update("DATA1", c[5]);
+                        data2.update("DATA2", c[6]);
+                        data2.update("DATA3", c[7]);
                     }
                     else
-                        data2.update("DATA",value);
-    
-                    data2.updateOnly("LEGACY","");
-                    v = data2.getColValues().split(",");
-                    sheet.appendRow(v);
-                    id++;
-                    lastRow++;
-
-                    if ( data2.arr.length > 13 )
-                    {
-                        SysLog.log(1,"COLNAMES","IMPROT LEGACY",data2.getColNames());
-                        SysLog.log(1,"IMPROT LEGACY","data growing horizontally");
-                        SysLog.log(1,"Data","IMPROT LEGACY",JSON.stringify(data2));
-                        SysLog.log(1,"v length","IMPROT LEGACY",v.length.toString());
-                        SysLog.log(1,"v tos end to sheet","IMPROT LEGACY",JSON.stringify(v));
-                        
-                        return 0;
-                    }
-
+                        data2.update("DATA", value);
                 }
+                else if (recType == "PRESURE") {
+                    data2.update("REC_TYPE", "PRS");
+                    if (c.length > 5) {
+                        data2.update("DATA", value);
+                        data2.update("DATA1", c[5]);
+                        data2.update("DATA2", c[6]);
+                    }
+                    else
+                        data2.update("DATA", value);
+                }
+                else
+                    data2.update("DATA", value);
+
+                data2.update("LEGACY", "");
+                v = data2.getColValues().split(",");
+                sheet.appendRow(v);
+                id++;
+                lastRow++;
             }
+            catch (ex) {
+                fpi.failRows++;
+                fpi.failRow = i;
+                fpi.error = ex.message;
+                SysLog.logException(ex, `importBatchLegacy() Error Line ${i}`, JSON.stringify(c));
+                //break;
+                //throw ex;
+            }
+
         }
+
         if (records != null && records.length > 0) {
             sheet = ss.getSheetByName("Detail");
             range = sheet.getDataRange();
@@ -332,61 +356,101 @@ export class Service {
             }
             lastRow++;
 
-            for (var i = 0; i < records.length; i++) {
-                let row = [lastRow, id, "", records[i].itemId, records[i].cant, records[i].time,records[i].data2];
+            for (i = 0; i < records.length; i++) {
+                let row = [lastRow, records[i].id, "", records[i].itemId, records[i].cant, records[i].time, records[i].data2];
                 sheet.appendRow(row);
                 lastRow++;
             }
         }
+        id--;
         this.updateId("Id", id);
-        SysLog.log(0,"RETURNING FROM IMPORT LEGACY");
-        return id;
+        SysLog.log(0, "MOVING SOURCE FILE");
+        try {
+            Utils.moveFiles(ssFile.getId(), this.folder);
+            let movedFile = DriveApp.getFileById(fpi.fi.id);
+            fi = new FileInfo();
+            fi.setFileInfo(movedFile);
+            fpi.setFileInfo(fi);
+            fpi.id = id;
+        }
+        catch (ex) {
+            SysLog.logException(ex, `importBatchLegacy() Moving files`, JSON.stringify(fpi), JSON.stringify(fi));
+        }
+        Logger.log("RETURNING...");
+        return fpi;
     }
 
-    importGLUC(Data: KVPCollection): number {
-        let data2 = new KVPCollection();
-        data2.initialize("ROW,ID,INACTIVE,DAYS,MINUTES");
-        data2.addRange(Data);
 
+    importBatchGluc(url): FileProcessItem {
+        let dt;
+        let days = 0;
+
+        let year = 0;
+        let hora = "";
+        let fileName = "";
+        let lastRow = 2;
+        let grid2;
+        let ss;
+        let sheet;
+        let range;
+        let lastColumn = 0;
+        let lastYear = 0;
+        let grid;
+        let recType = "";
+        let drugItems = Utils.getData(this.db, "DrugItems");
+        let records = new Array<RecordItemBase>();
+        let minutes = 0;
+        let v;
+        let Y = 0;
+        let M = 0;
+        let D = 0;
+        let DOW = 0;
+        let fecha = "";
+        let i = 0;
+        let ssSource;
+        let gridSource;
+        let fpi = new FileProcessItem();
+        let c;
+        let value;
+
+
+        ssSource = Utils.openSpreadSheet(url);
+        if (ssSource == null)
+            return fpi;
+
+        let ssFile = Utils.getFileByName(ssSource.getName());
+        let fi = new FileInfo();
+        fi.setFileInfo(ssFile);
+        fpi.setFileInfo(fi);
+
+        sheet = ssSource.getActiveSheet();
+        var rangeData = sheet.getDataRange();
+        lastColumn = rangeData.getLastColumn();
+        fpi.totalRows = rangeData.getLastRow();
+        gridSource = rangeData.getValues();
+
+        let data2 = new KVPCollection();
+        data2.initialize("ROW,ID,INACTIVE,DAYS,MINUTES,Y,M,D,DOW,REC_TYPE,FECHA,HORA,DATA");
 
         let id = this.getId("Id");
-        let fecha = data2.get("FECHA");
-        let dt = Utils.getDateFromYMD(fecha);
-        let days = Utils.getDays(dt);
-        let year = fecha.substring(0, 4);
-        let hora = data2.get("HORA");
-        let fileName = `${year}_data`;
-        let lastRow = 2;
-        let ss = Utils.getCreateSpreadSheet(this.folder, fileName, "Master,Detail", data2.getColNames());
-        let sheet = ss.getActiveSheet();
-        let range = sheet.getDataRange();
-        var lastColumn = range.getLastColumn();
-        let lastYear:Number = new Date().getFullYear();
-        lastRow = range.getLastRow() + 1;
-        let recType = "";
+        data2.update("REC_TYPE","GLUC")
 
+        SysLog.log(0, "grid", "importLegacyGLUC()", `grid length: ${gridSource.length} lastColumn:${lastColumn}`);
+        for (i = 1; i < gridSource.length; i++) {
+            try {
 
-        let glucData = data2.get("GLUC");
-        let lines = data2.get("GLUC").split("\n");
-        if ( lines.length < 2 )
-        {
-            lines = data2.get("GLUC").split(";");
-        }
-        let grid = range.getValues();
-        grid = grid.filter(x => x[5] == "GLUC");
-        let grid2;
-        for (var i = 0; i < lines.length; i++) {
-            let c = lines[i].split("\t");
-            if (c.length > 4) {
-                let dateParts = c[0].split(" ");
-                let value = c[4];
-                dt = Utils.getDateFromDMY(dateParts[0],"/");
-
-                if ( dt == null )
+                c = gridSource[i];
+                if (c[1] != "2")
                     continue;
-                
-                if ( dt.getFullYear() != lastYear )
-                {
+
+                dt = c[0];
+                if ( !Utils.isDate(dt))
+                    dt = Utils.getDateYMDFromDMY(dt.toString(),"/");
+
+
+                value = c[4];
+
+                if (dt.getFullYear() != lastYear) {
                     year = dt.getFullYear();
                     fileName = `${year}_data`;
                     ss = Utils.getCreateSpreadSheet(this.folder, fileName, "Master,Detail", data2.getColNames());
@@ -394,52 +458,111 @@ export class Service {
                     range = sheet.getDataRange();
                     lastColumn = range.getLastColumn();
                     lastRow = range.getLastRow() + 1;
-                    lastYear = dt;
+                    lastYear = year;
                     grid = range.getValues();
+                    Logger.log(`Processing New Year ${fi.name} ${i}/${gridSource.length} date:${JSON.stringify(dt)}`);
                 }
+
                 days = Utils.getDays(dt);
-                fecha = dateParts[0];
-                let fp = fecha.split("/");
-                fecha = `${fp[2]}-${fp[1]}-${fp[0]}`;
-                let minutes = Utils.getMinutes(dateParts[1]);
-                hora = dateParts[1];
+
 
                 grid2 = grid.filter(x => x[3] == days.toString() &&
                     x[4] == minutes.toString());
-                
 
-                if (grid2.length == 0) {
-                    data2.update("ID", id.toString());
-                    data2.update("ROW", lastRow.toString());
-                    data2.update("DAYS", days.toString());
-                    data2.update("MINUTES", minutes.toString());
-                    data2.update("GLUC", value);
-                    data2.update("FECHA",fecha);
-                    data2.update("HORA",hora);
-                    let v = data2.getColValues().split(",");
-                    sheet.appendRow(v);
-                    id++;
-                    lastRow++;
+                if (grid2.length > 0) {
+                    fpi.duplicates++;
+                    fpi.failRow = i;
+                    SysLog.log(0, `duplicatesGLUC ${i}","importBatchGLUC()`, JSON.stringify(c));
+                    continue;
                 }
+
+                Y = dt.getFullYear();
+                M = dt.getMonth() + 1;
+                D = dt.getDate();
+                DOW = dt.getDay();
+                fecha = Utils.getYMD(dt);
+                if ( fecha == "" )
+                {
+                    fecha = Utils.getDateYMDFromDMY(dt.toString());
+                    hora = Utils.getHourFromDMY(dt.toString());
+                }
+                else
+                    hora = Utils.getHM(dt);
+                minutes = Utils.getMinutes(hora);
+
+                data2.update("D", D.toString());
+                data2.update("M", M.toString());
+                data2.update("Y", Y.toString());
+                data2.update("DOW", DOW.toString());
+                data2.update("ID", id.toString());
+                data2.update("ROW", lastRow.toString());
+                data2.update("DAYS", days.toString());
+                data2.update("MINUTES", minutes.toString());
+                data2.update("DATA", value);
+                data2.update("FECHA", fecha);
+                data2.update("HORA", hora);
+                let v = data2.getColValues().split(",");
+                sheet.appendRow(v);
+                fpi.okRows++;
+                id++;
+                lastRow++;
             }
+            catch (ex) {
+                fpi.failRows++;
+                fpi.failRow = i;
+                fpi.error = ex.message;
+                SysLog.logException(ex, `importBatchLegacy() Error Line ${i}`, JSON.stringify(c));
+
+                //break;
+                //throw ex;
+            }
+
         }
+
+        id--;
         this.updateId("Id", id);
-        return id;
+        SysLog.log(0, "MOVING SOURCE FILE");
+        try {
+            Utils.moveFiles(ssFile.getId(), this.folder);
+            let movedFile = DriveApp.getFileById(fpi.fi.id);
+            fi = new FileInfo();
+            fi.setFileInfo(movedFile);
+            fpi.setFileInfo(fi);
+            fpi.id = id;
+        }
+        catch (ex) {
+            SysLog.logException(ex, `importBatchGLUC() Moving files`, JSON.stringify(fpi), JSON.stringify(fi));
+        }
+        Logger.log("RETURNING...");
+        return fpi;
     }
 
-    processForm(Data: KVPCollection, records: Array<RecordItemBase>, colSep="\t", lineSep = "\n"): number {
+    processForm(Data: KVPCollection, records: Array<RecordItemBase>, colSep = "\t", lineSep = "\n"): GSResponse {
         SysLog.log(0, "data received", "processForm()", JSON.stringify(Data));
         SysLog.log(0, "records", "processForm()", JSON.stringify(records));
 
+        let response = new GSResponse();
         let data2 = new KVPCollection();
-        data2.initialize("ROW,ID,INACTIVE,DAYS,MINUTES");
+        data2.initialize("ROW,ID,INACTIVE,DAYS,MINUTES,Y,M,D,DOW,");
         data2.addRange(Data);
 
         let recType = data2.get("REC_TYPE");
+        let fpi = new FileProcessItem();
+        let url = "";
         if (recType == "GLUC")
-            return this.importGLUC(Data);
-        else if ( recType == "LEG")
-            return this.importLegacy(Data, colSep,lineSep);
+        {
+            url = data2.get("URL");
+            if ( url != "" )
+                fpi = this.importBatchGluc(url);
+            response.addData("fpi",JSON.stringify(fpi));
+        }
+        else if (recType == "LEG")
+        {
+            url = data2.get("URL");
+            if ( url != "" )
+                fpi = this.importBatchLegacy(url);
+                response.addData("fpi",JSON.stringify(fpi));
+        }
 
 
         let id = this.getId("Id");
@@ -454,12 +577,25 @@ export class Service {
         let sheet = ss.getActiveSheet();
         let range = sheet.getDataRange();
         var lastColumn = range.getLastColumn();
+        let Y = 0;
+        let M = 0;
+        let D = 0;
+        let DOW = 0;
         lastRow = range.getLastRow() + 1;
+
 
         data2.update("ID", id.toString());
         data2.update("ROW", lastRow.toString());
         data2.update("DAYS", days.toString());
         data2.update("MINUTES", Utils.getMinutes(hora).toString());
+        Y = dt.getFullYear();
+        M = dt.getMonth() + 1;
+        D = dt.getDate();
+        DOW = dt.getDay();
+        data2.update("D", D.toString());
+        data2.update("M", M.toString());
+        data2.update("Y", Y.toString());
+        data2.update("DOW", DOW.toString());
 
 
         let v = data2.getColValues().split(",");
@@ -484,6 +620,102 @@ export class Service {
                 lastRow++;
             }
         }
+        response.id = id;
+        return response;
+    }
+
+    importGLUC(Data: KVPCollection): number {
+        let data2 = new KVPCollection();
+        data2.initialize("ROW,ID,INACTIVE,DAYS,MINUTES,Y,M,D,DOW");
+        data2.addRange(Data);
+
+
+        let id = this.getId("Id");
+        let fecha = data2.get("FECHA");
+        let dt = Utils.getDateFromYMD(fecha);
+        let days = Utils.getDays(dt);
+        let year = fecha.substring(0, 4);
+        let hora = data2.get("HORA");
+        let fileName = `${year}_data`;
+        let lastRow = 2;
+        let ss = Utils.getCreateSpreadSheet(this.folder, fileName, "Master,Detail", data2.getColNames());
+        let sheet = ss.getActiveSheet();
+        let range = sheet.getDataRange();
+        var lastColumn = range.getLastColumn();
+        let lastYear: Number = new Date().getFullYear();
+        lastRow = range.getLastRow() + 1;
+        let recType = "";
+        let Y = 0;
+        let M = 0;
+        let D = 0;
+        let DOW = 0;
+
+
+        let glucData = data2.get("GLUC");
+        let lines = data2.get("GLUC").split("\n");
+        if (lines.length < 2) {
+            lines = data2.get("GLUC").split(";");
+        }
+        let grid = range.getValues();
+        grid = grid.filter(x => x[5] == "GLUC");
+        let grid2;
+        for (var i = 0; i < lines.length; i++) {
+            let c = lines[i].split("\t");
+            if (c.length > 4) {
+                let dateParts = c[0].split(" ");
+                let value = c[4];
+                fecha = dateParts[0];
+                dt = Utils.getDateFromDMY(dateParts[0], "/");
+
+                if (dt == null)
+                    continue;
+
+                if (dt.getFullYear() != lastYear) {
+                    year = dt.getFullYear();
+                    fileName = `${year}_data`;
+                    ss = Utils.getCreateSpreadSheet(this.folder, fileName, "Master,Detail", data2.getColNames());
+                    sheet = ss.getActiveSheet();
+                    range = sheet.getDataRange();
+                    lastColumn = range.getLastColumn();
+                    lastRow = range.getLastRow() + 1;
+                    lastYear = dt;
+                    grid = range.getValues();
+                }
+                days = Utils.getDays(dt);
+                let fp = fecha.split("/");
+                fecha = `${fp[2]}-${fp[1]}-${fp[0]}`;
+                let minutes = Utils.getMinutes(dateParts[1]);
+                hora = dateParts[1];
+
+                grid2 = grid.filter(x => x[3] == days.toString() &&
+                    x[4] == minutes.toString());
+
+
+                if (grid2.length == 0) {
+                    Y = dt.getFullYear();
+                    M = dt.getMonth() + 1;
+                    D = dt.getDate();
+                    DOW = dt.getDay();
+                    data2.update("D", D.toString());
+                    data2.update("M", M.toString());
+                    data2.update("Y", Y.toString());
+                    data2.update("DOW", DOW.toString());
+                    data2.update("ID", id.toString());
+                    data2.update("ROW", lastRow.toString());
+                    data2.update("DAYS", days.toString());
+                    data2.update("MINUTES", minutes.toString());
+                    data2.update("GLUC", value);
+                    data2.update("FECHA", fecha);
+                    data2.update("HORA", hora);
+                    let v = data2.getColValues().split(",");
+                    sheet.appendRow(v);
+                    id++;
+                    lastRow++;
+                }
+            }
+        }
+        this.updateId("Id", id);
         return id;
     }
+
 }

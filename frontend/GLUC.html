@@ -1,2 +1,8 @@
-<textarea id="GLUC" name="GLUC" rows="5"  placeholder="Paste Glucose or NEO Data"
-    onblur="onBlurField(this.name,this.value)" required class="form-control big-font"></textarea>
+<div class="row fat-row">
+    <div class="col-md-3"><label for="URL">NEO Data in Google Sheets file</label></div>
+    <div class="col-md-9">
+        <input type="url" id="URL" name="URL" placeholder="Url of Google Sheets file" 
+        required class="form-control big-font"
+        onblur="onBlurField(this.id,this.value)">
+    </div>
+</div>

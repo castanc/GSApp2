@@ -1,5 +1,6 @@
 import { FileInfo } from "../Models/FileInfo";
 import { GSResponse } from "../Models/GSResponse";
+import { SysLog } from "./SysLog";
 
 export class Utils {
 
@@ -27,6 +28,51 @@ export class Utils {
         return Utilities.formatDate(dt, Session.getScriptTimeZone(), 'yyyy-MM-dd HH-mm-ss');
     }
 
+    //https://stackoverflow.com/questions/1353684/detecting-an-invalid-date-date-instance-in-javascript
+
+    static isDate(dt)
+    {
+        let result =true;
+        if (Object.prototype.toString.call(dt) === "[object Date]") {
+            // it is a date
+            if (isNaN(dt.getTime())) {  // d.valueOf() could also work
+              // date is not valid
+              result = false;
+            } else {
+              // date is valid
+              result = true;
+            }
+          } else {
+            result =false;
+          }
+        return result;
+
+    }
+
+    static getYMD(dt: Date = null) {
+        let sDate = "";
+        if (dt == null)
+            dt = new Date();
+
+        try {
+            sDate = Utilities.formatDate(dt, Session.getScriptTimeZone(), 'yyyy-MM-dd');
+        }
+        catch (ex) {
+        }
+        return sDate;
+    }
+
+    static getHM(dt: Date = null) {
+        let sDate = "";
+        if (dt == null)
+            dt = new Date();
+        try {
+            sDate = Utilities.formatDate(dt, Session.getScriptTimeZone(), 'HH:mm');
+        }
+            return sDate;
+    }
+
+
     static getDocTextByName(fileName): string {
         var text = "";
 
@@ -36,7 +82,7 @@ export class Utils {
                 text = doc.getBody().getText();
         }
         catch (ex) {
-            Logger.log(`getDocTextByName() Exception. fileName: ${fileName} ${ex.message}`);
+            Logger.log(`getDocTextByName() Exception.fileName: ${fileName} ${ex.message}`);
         }
         return text;
     }
@@ -203,11 +249,30 @@ export class Utils {
 
     static getDateFromYMD(dtStr, sep: string = "-") {
         let dt = null;
+        let fp = dtStr.split(" ");
+        let p;
         try {
-            let p = dtStr.split(sep);
-            if (p.length > 2) {
-                dt = new Date(Number(p[0]), Number(p[1] - 1), Number(p[2]));
+            if ( fp.length > 0 )
+                p = fp[0].split(sep);
+            else 
+                p = dtStr.split(sep);
+                
+            if (p.length > 2) 
+            {
+                if ( fp.length > 1 )
+                {
+                    let h = fp[1].split(":");
+                    if ( h.length > 1 )
+                        dt = new Date(Number(p[0]), Number(p[1] - 1), Number(p[2]),
+                        Number(h[0]),Number(h[1]));
+                    else
+                        dt = new Date(Number(p[0]), Number(p[1] - 1), Number(p[2]));
+                }
+                else dt = new Date(Number(p[0]), Number(p[1] - 1), Number(p[2]));
             }
+
+            
+            
         }
         catch (ex) {
 
@@ -217,14 +282,52 @@ export class Utils {
 
     static getDateFromDMY(dtStr, sep: string = "-") {
         let dt = null;
+        let p;
         try {
-            let p = dtStr.split(sep);
+            p = dtStr.split(sep);
             if (p.length > 2) {
                 dt = new Date(Number(p[2]), Number(p[1] - 1), Number(p[0]));
             }
         }
         catch (ex) {
 
+        }
+        return dt;
+    }
+
+    static getHourFromDMY(dateString)
+    {
+        let sHour = "";
+        let p = dateString.split(" ");
+        if ( p.length > 1)
+            sHour = p[1].trim();
+        return sHour;
+    }
+
+    static getDateYMDFromDMY(dtStr, sep: string = "-") {
+        let dt = null;
+        let p = [];
+        let f = [];
+        let hr = [];
+        try {
+            f = dtStr.split(" ");
+            if (f.length > 0) {
+                p = f[0].split(sep);
+                if ( f.length > 1 )
+                    hr = f[1].split(":");
+
+                if ( p.length > 2)
+                {
+                    if ( hr.length > 1 )
+                        dt = new Date(Number(p[2]), Number(p[1] - 1), Number(p[0]),
+                        Number(hr[0]),Number(hr[1]));
+                    else
+                        dt = new Date(Number(p[2]), Number(p[1] - 1), Number(p[0]));
+                }
+            }
+        }
+        catch (ex) {
+            SysLog.logException(ex,"getDateYMDFromDMY()",`dtStr:${dtStr} sep:${sep}`,`${f.length} ${p.length}`)
         }
         return dt;
     }
@@ -259,7 +362,7 @@ export class Utils {
         let p = time.split(sep);
         let h = 0;
         let m = 0;
-        let s= 0;
+        let s = 0;
         try {
             if (p.length > 1) {
                 h = Number(p[0]);
@@ -268,17 +371,16 @@ export class Utils {
                 if (p.length > 2)
                     s = Number(p[2]);
             }
-            else
-            {
-                h = Number(time.substring(0,2));
-                m = Number(time.substring(2,2));
-                s = Number(time.substring(4,2));
+            else {
+                h = Number(time.substring(0, 2));
+                m = Number(time.substring(2, 2));
+                s = Number(time.substring(4, 2));
             }
         }
         catch (ex) {
-            h =0; 
-            m=0;
-            s=0;
+            h = 0;
+            m = 0;
+            s = 0;
         }
         minutes = h * 60 + m;
         seconds = minutes * 60 + s;
@@ -292,8 +394,13 @@ export class Utils {
         return sheet.getDataRange();
     }
 
-    static getData(ss, sheetName: string): [][] {
-        let sheet = ss.getSheetByName(sheetName);
+    static getData(ss, sheetName: string = ""): [][] {
+        let sheet;
+        if (sheetName == "")
+            sheet = ss.getActiveSheet();
+        else
+            sheet = ss.getSheetByName(sheetName);
+
         var rangeData = sheet.getDataRange();
         //var lastColumn = rangeData.getLastColumn();
         //var lastRow = rangeData.getLastRow();
@@ -327,7 +434,7 @@ export class Utils {
         if (caption.length == 0)
             caption = "None";
 
-        var options = `<option value="-1" selected>${caption}</option>`;
+        var options = `< option value = "-1" selected > ${caption} < /option>`;
         for (var i = 0; i < list.length; i++) {
             options = options + `<option value="${i}">${list[i]}</option>`;
         }

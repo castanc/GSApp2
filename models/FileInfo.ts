@@ -8,7 +8,11 @@ export class FileInfo{
     parentDirs = new Array<string>();
     size: number;
 
-    constructor( file)
+    constructor()
+    {
+    }
+
+    setFileInfo(file)
     {
         this.dateModified = file.getLastUpdated();
         this.size = file.getSize();
@@ -22,7 +26,6 @@ export class FileInfo{
             var folder = folders.next();
             this.parentDirs.push(folder.getName());
         }
-
 
     }
 }

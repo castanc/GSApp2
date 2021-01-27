@@ -19,7 +19,6 @@ export class KVPCollection {
     }
 
     updateOnly(key, value) {
-        SysLog.log(0,"updateOnly() value length:",value.length.toString());
         let existing = this.arr.filter(x => x.key == key);
         if (existing.length > 0)
             existing[0].value = value;

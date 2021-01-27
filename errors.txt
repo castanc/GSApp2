@@ -1,11 +1,1 @@
-backend/code.ts(17,30): error TS2554: Expected 2 arguments, but got 4.
-backend/service.ts(62,63): error TS2493: Tuple type '[]' of length '0' has no element at index '0'.
-backend/service.ts(259,58): error TS2493: Tuple type '[]' of length '0' has no element at index '5'.
-backend/service.ts(262,59): error TS2493: Tuple type '[]' of length '0' has no element at index '0'.
-backend/service.ts(262,77): error TS2493: Tuple type '[]' of length '0' has no element at index '0'.
-backend/service.ts(264,55): error TS2493: Tuple type '[]' of length '0' has no element at index '0'.
-backend/Utils.ts(181,20): error TS2304: Cannot find name 'FileIterator'.
-backend/Utils.ts(193,20): error TS2304: Cannot find name 'FileIterator'.
-backend/Utils.ts(374,18): error TS2339: Property 'moveTo' does not exist on type 'File'.
-backend/Utils.ts(476,52): error TS2339: Property 'PLAIN_TEXT' does not exist on type '{ new (): MimeType; prototype: MimeType; }'.
-../../node_modules/@types/google-apps-script/google-apps-script.base.d.ts(512,13): error TS2403: Subsequent variable declarations must have the same type.  Variable 'console' must be of type 'Console', but here has type 'console'.
+backend/service.ts(243,57): error TS1005: ';' expected.

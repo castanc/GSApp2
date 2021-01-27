@@ -19,21 +19,22 @@ export class SysLog {
         }
     }
 
-    static log(level, msg, method = "", additional = "") {
+    static log(level, msg, method = "", additional = "", data ="") {
         if (this.level == level || level == 9999)
         {
             SysLog.initialize();
             let ts = Utils.getTimeStamp();
-            let row = [ts, "INFO", method, msg, additional];
+            let row = [ts, "INFO", method, msg, additional,data];
             this.ssLog.appendRow(row);
             Logger.log(row);
         }
     }
 
-    static logException(ex, method = "", additional = "") {
+    static logException(ex, method = "", additional = "", add2 ="") {
         SysLog.initialize();
         let ts = Utils.getTimeStamp();
-        let row = [ts, "EXCEPTION", ex.messaage, method, additional, ex.stack,ex.prototype.fileName,ex.prototype.lineNumber,ex.prototype.columnNumber];
+        let row = [ts, "EXCEPTION", ex.messaage, method, additional, ex.stack, add2];
+        //ex.prototype.fileName,ex.prototype.lineNumber,ex.prototype.columnNumber
         this.ssLog.appendRow(row);
 
         Logger.log(JSON.stringify(row));

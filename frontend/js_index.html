@@ -100,30 +100,30 @@
         let row = "";
         if (records.length > 0) {
 
-            row = `<div class="row row-fat">
-            <div class="col-md-1"></div>
-            <div class="col-md-7">Food Item</div>
-            <div class="col-md-2">Cant</div>
+            row = `<div class="row">
+            <div class="col-md-2"></div>
+            <div class="col-md-2"></div>
+            <div class="col-md-3">Cant</div>
             <div class="col-md-1">Un</div>
-            <div class="col-md-1"></div>
+            <div class="col-md-4">Food Item</div>
             </div>
             `;
 
             for (var i = 0; i < records.length; i++) {
                 row = `${row}
-            <div class="fat-row">
-                <div class="col-md-1 cursorPointer"><i class="fas fa-trash-alt"  onclick="removeItem('${DrugItems}',${i})"></i></div>
-                <div class="col-md-7">${records[i].descr}</div>
+            <div class="row">
                 <div class="col-md-2">
+                    <img src="${records[i].url}" class="thumb"></img>
+                    </div>
+                <div class="col-md-2 cursorPointer"><i class="fas fa-trash-alt"  onclick="removeItem('${DrugItems}',${i})"></i></div>
+                <div class="col-md-3">
                     <input type="number" id="q{${i}} name="q${i}" placeholder="Cant" value="${records[i].cant}" onchange="setRecord(${i},this.value)">
                 </div>
                 <div class="col-md-1">
                     ${records[i].unit}
                 </div>
+                <div class="col-md-4">${records[i].descr}</div>
 
-                <div class="col-md-1">
-                    <img src="${records[i].url}" class="thumb"></img>
-                    </div>
             </div>`;
             }
         }
@@ -290,9 +290,9 @@
         else if (recType == "DRUG") {
             requiredFields = "REC_TYPE,FECHA,HORA,DRUGID,CANT";
             initializeData(requiredFields);
-            Data.update("REC_TYPE",recType);
-                    htmLSelect = getSelect("DrugItems", DrugItems.arr, 0, 1, "Select Drug", "", true, 1);
-                    writeInnerHtml("DRUG_ITEMS", htmLSelect);
+            Data.update("REC_TYPE", recType);
+            htmLSelect = getSelect("DrugItems", DrugItems.arr, 0, 1, "Select Drug", "", true, 1);
+            writeInnerHtml("DRUG_ITEMS", htmLSelect);
         }
         else if (recType == "PRS") {
             requiredFields = "REC_TYPE,FECHA,HORA,SISTOLIC,DIASTOLIC,PULSE,PULSEOF";
@@ -308,14 +308,14 @@
 
         }
         else if (recType == "GLUC") {
-            requiredFields = "REC_TYPE,FECHA,HORA,GLUC";
+            requiredFields = "REC_TYPE,FECHA,HORA,URL";
             initializeData(requiredFields);
         }
         else if (recType == "LEG") {
-            requiredFields = "REC_TYPE,FECHA,HORA,LEGACY";
+            requiredFields = "REC_TYPE,FECHA,HORA,URL";
             initializeData(requiredFields);
         }
-        Data.update("REC_TYPE",recType);
+        Data.update("REC_TYPE", recType);
 
     }
 
@@ -338,6 +338,8 @@
 
     function processForm() {
         if (document.forms["myForm"].checkValidity()) {
+            disableButtons(true);
+            showDiv("mainContent", false);
             Data.update("FECHA", getValue("FECHA"));
             Data.update("HORA", getValue("HORA"));
 
@@ -352,8 +354,6 @@
 
                 recordsBase.push(r);
             }
-            disableButtons(true);
-            showDiv("mainContent", false);
 
 
             sessionStorage.setItem("data", JSON.stringify(Data));
@@ -362,10 +362,16 @@
             google.script.run.withFailureHandler(failureHandler)
                 .withSuccessHandler(processResponse)
                 .processForm(Data, recordsBase);
+
+            disableButtons(false);
+            showDiv("mainContent", true);
+
         }
         else {
             showError("Some fields are required");
+
         }
+
     }
     function processFoodItemsRequest(json) {
         FoodItems.arr = JSON.parse(json);
@@ -445,14 +451,14 @@
                 .getFoodItems();
         }
         if (ExeItems.arr.length == 0) {
-                google.script.run.withFailureHandler(failureHandler).withSuccessHandler(processExeItemsRequest)
-                    .getExeItems();
-            }
-            if (DrugItems.arr.length == 0) {
-                google.script.run.withFailureHandler(failureHandler).withSuccessHandler(getDrugItemsHandler)
-                    .getDrugItems();
-            }
-        setTimeout(function(){
+            google.script.run.withFailureHandler(failureHandler).withSuccessHandler(processExeItemsRequest)
+                .getExeItems();
+        }
+        if (DrugItems.arr.length == 0) {
+            google.script.run.withFailureHandler(failureHandler).withSuccessHandler(getDrugItemsHandler)
+                .getDrugItems();
+        }
+        setTimeout(function () {
             // This hides the address bar:
             window.scrollTo(0, 1);
         }, 0);
@@ -500,7 +506,7 @@
         let = url = "";
         records = [];
         //renderFoodItems();
-        writeInnerHtml("rows","");
+        writeInnerHtml("rows", "");
 
         if (html.length == 0) {
             console.log("getting form from server");
