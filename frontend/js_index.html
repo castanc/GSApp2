@@ -8,6 +8,8 @@
     let record = {};
     let records = [];
     let requiredFields = "";
+    let response;
+    let confirming = false;
 
 
 
@@ -236,7 +238,7 @@
 
         options = `<option value="">${title}</option>`
         for (var i = startRow; i < arr.length; i++) {
-            if (arr[i][idCol] == selectedValue)
+            if (selectedValue != "" && arr[i][idCol] == selectedValue)
                 options = `${options}<option value="${arr[i][idCol]}" selected>${arr[i][valueCol]}</option>`
             else
                 options = `${options}<option value="${arr[i][idCol]}">${arr[i][valueCol]}</option>`
@@ -317,6 +319,12 @@
         }
         Data.update("REC_TYPE", recType);
 
+        if ( response.showModal )
+        {
+            writeInnerHtml("modalBody",response.messages);
+            showDiv("modalPopUp");
+        }
+
     }
 
     function addFoodItem(itemId) {
@@ -332,14 +340,42 @@
 
 
     function onBlurField(id, value) {
+        console.log(`onBlurField() ${id} ${value}`);
         Data.update(id, value);
     }
 
 
+    function changeButtonText(btn, text) {
+            let changed = false;
+            let currentText = document.querySelector(`#${btn}`).innerHTML;
+            if (currentText.toLowerCase().indexOf(text.toLowerCase()) < 0) {
+                currentText = `${text} ${currentText}`;
+                document.querySelector(`#${btn}`).innerHTML = currentText;
+                changed = true;
+            }
+            return changed;
+        }
+
+
     function processForm() {
+        console.log("processForm()");
+        if ( !confirming )
+        {
+            changeButtonText("btnSubmit","Confirm ");
+            confirming = true;
+            return;
+        }
+        else
+        {
+            confirming = false;
+        }
         if (document.forms["myForm"].checkValidity()) {
             disableButtons(true);
             showDiv("mainContent", false);
+            showMessage("Sending data for processing...");
+
+
+
             Data.update("FECHA", getValue("FECHA"));
             Data.update("HORA", getValue("HORA"));
 
@@ -356,10 +392,11 @@
             }
 
 
+            console.log("Data",Data);
             sessionStorage.setItem("data", JSON.stringify(Data));
             sessionStorage.setItem("records", JSON.stringify(records));
 
-            google.script.run.withFailureHandler(failureHandler)
+             google.script.run.withFailureHandler(failureHandler)
                 .withSuccessHandler(processResponse)
                 .processForm(Data, recordsBase);
 
@@ -393,12 +430,15 @@
     }
 
     function processResponse(json) {
-        let response = JSON.parse(json);
+        showMessage("Response received from Server");
+
+        response = JSON.parse(json);
+        console.log("processResponse()");
+        console.log(response);
         if (response.result == 200) {
             for (var i = 0; i < response.html.length; i++) {
                 writeInnerHtml(response.html[i].key, response.html[i].value)
             }
-            processData(recType, response.data);
             disableButtons(false);
             showDiv("mainContent", true);
 
@@ -407,6 +447,7 @@
                 msg = `${msg}<p class="text-info>${response.messages[i]}</p></br>`;
             }
             writeInnerHtml("result", msg);
+            processData(recType, response.data);
 
         }
         else {
@@ -507,6 +548,7 @@
         records = [];
         //renderFoodItems();
         writeInnerHtml("rows", "");
+        hideTop();
 
         if (html.length == 0) {
             console.log("getting form from server");
@@ -597,6 +639,18 @@
 
     }
 
+
+    function hideTop()
+    {
+        showDiv("menu",false);
+        showDiv("common",false);
+
+    }
+    function cancelRequest()
+    {
+        showDiv("menu",true);
+        showDiv("common",true);
+    }
 
     function onSuccess(html) {
         showDiv('secondary', false);

@@ -6,10 +6,18 @@ export class FileInfo{
     dateCreated: Date;
     dateModified: Date;
     parentDirs = new Array<string>();
+    
     size: number;
 
     constructor()
     {
+    }
+
+    getFirstDir()
+    {
+        if ( this.parentDirs.length > 0 )
+            return this.parentDirs[0];
+        else return "";
     }
 
     setFileInfo(file)

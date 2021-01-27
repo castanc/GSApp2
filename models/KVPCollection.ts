@@ -18,6 +18,11 @@ export class KVPCollection {
             this.arr.push(new KeyValuePair<string, string>(key, value));
     }
 
+    remove(key)
+    {
+        this.arr = this.arr.filter(x=>x.key!=key);
+    }
+
     updateOnly(key, value) {
         let existing = this.arr.filter(x => x.key == key);
         if (existing.length > 0)

@@ -4,6 +4,12 @@ import { Service } from "./service";
 import { SysLog } from "./SysLog";
 import { Utils } from "./Utils";
 
+
+function testGetLogLevel()
+{
+    let sv = new Service();
+    sv.getLogLevel("Id");
+}
 function testImportBatchGLUC()
 {
     let url = "https://docs.google.com/spreadsheets/d/18TRvXTSThhQHQ9KzhHC8_aTttC9Uc08TOCx1Zf4gfqI/edit#gid=0";
@@ -147,6 +153,7 @@ function processForm(Data, records, colSep = "\t", lineSep = "\bn") {
     let html = "";
     let result = new GSResponse();
     try {
+        SysLog.level = 1;
         result = sv.processForm(Data, records,colSep,lineSep);
         if ( result.id >= 0 )
         {
@@ -164,6 +171,7 @@ function processForm(Data, records, colSep = "\t", lineSep = "\bn") {
         result.addError("error", ex.message);
         result.messages.push(ex.message);
         result.messages.push(ex.stack);
+        result.showModal = false;
     }
     return JSON.stringify(result);
 }

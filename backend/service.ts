@@ -66,6 +66,19 @@ export class Service {
         return html;
     }
 
+    getLogLevel(tabName): number {
+        SysLog.level = 0;
+        let sheet = this.db.getSheetByName(tabName);
+        let rangeData = sheet.getRange(1, 1, 2, 2);
+        let value = rangeData.getCell(2, 2).getValue();
+        if (value == null)
+            value = 0;
+
+        SysLog.level = Number(value);
+        return value;
+    }
+
+
 
     getId(tabName): number {
         let id = 0;
@@ -246,6 +259,8 @@ export class Service {
                     lastYear = dt;
                     grid = range.getValues();
                 }
+
+                SysLog.log(1,`Processing ${i}`,"importBatchLegacy()",JSON.stringify(c));
                 recType = c[1].toUpperCase();
                 fecha = Utils.getYMD(dt);
                 days = Utils.getDays(dt);
@@ -447,6 +462,8 @@ export class Service {
                 if ( !Utils.isDate(dt))
                     dt = Utils.getDateYMDFromDMY(dt.toString(),"/");
 
+                SysLog.log(1,`Processing ${i}`,"importBatchGLUC()",JSON.stringify(c));
+
 
                 value = c[4];
 
@@ -511,7 +528,7 @@ export class Service {
                 fpi.failRows++;
                 fpi.failRow = i;
                 fpi.error = ex.message;
-                SysLog.logException(ex, `importBatchLegacy() Error Line ${i}`, JSON.stringify(c));
+                SysLog.logException(ex, `importBatchGLUC() Error Line ${i}`, JSON.stringify(c));
 
                 //break;
                 //throw ex;
@@ -537,13 +554,51 @@ export class Service {
         return fpi;
     }
 
+    renderBatchResults(fpi: FileProcessItem):string {
+        let html = `<table>
+        <tr>
+            <td>File Name:</td>
+            <td>${fpi.fi.name}</td>
+        </tr>
+        <tr>
+            <td>Folder:</td>
+            <td>${fpi.fi.getFirstDir()}</td>
+        </tr>
+        <tr>
+            <td>Date Modified:</td>
+            <td>${fpi.fi.dateModified.toString()}</td>
+        </tr>
+        <tr>
+            <td>Total Rows:</td>
+            <td>${fpi.totalRows}</td>
+        </tr>
+        <tr>
+            <td>OK Rows:</td>
+            <td>${fpi.okRows}</td>
+        </tr>
+        <tr>
+            <td>Fail Rows:</td>
+            <td>${fpi.failRows}</td>
+        </tr>
+        <tr>
+            <td>Duplicates</td>
+            <td>${fpi.duplicates}</td>
+        </tr>
+    
+    </table>
+        `;
+
+        return html;
+    }
+
     processForm(Data: KVPCollection, records: Array<RecordItemBase>, colSep = "\t", lineSep = "\n"): GSResponse {
-        SysLog.log(0, "data received", "processForm()", JSON.stringify(Data));
-        SysLog.log(0, "records", "processForm()", JSON.stringify(records));
+        this.getLogLevel("Id");
+        SysLog.log(1, "data received", "processForm()", JSON.stringify(Data));
+        SysLog.log(1, "records", "processForm()", JSON.stringify(records));
 
         let response = new GSResponse();
         let data2 = new KVPCollection();
-        data2.initialize("ROW,ID,INACTIVE,DAYS,MINUTES,Y,M,D,DOW,");
+        data2.initialize("ROW,ID,INACTIVE,DAYS,MINUTES,Y,M,D,DOW");
         data2.addRange(Data);
 
         let recType = data2.get("REC_TYPE");
@@ -553,15 +608,21 @@ export class Service {
         {
             url = data2.get("URL");
             if ( url != "" )
+            {
                 fpi = this.importBatchGluc(url);
-            response.addData("fpi",JSON.stringify(fpi));
+                response.addHtml("modalBody",this.renderBatchResults(fpi));
+                return response;
+            }
         }
         else if (recType == "LEG")
         {
             url = data2.get("URL");
             if ( url != "" )
+            {
                 fpi = this.importBatchLegacy(url);
-                response.addData("fpi",JSON.stringify(fpi));
+                response.addHtml("modalBody",this.renderBatchResults(fpi));
+                return response;
+            }
         }
 
 
@@ -620,6 +681,7 @@ export class Service {
                 lastRow++;
             }
         }
+        response.showModal = true;
         response.id = id;
         return response;
     }

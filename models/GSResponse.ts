@@ -10,6 +10,7 @@ export class GSResponse {
     data: Array<KeyValuePair<string,string>> = new Array<KeyValuePair<string,string>>();
     error: Array<KeyValuePair<string,string>> = new Array<KeyValuePair<string,string>>();
     messages = new Array<string>();
+    showModal = false;
     
     constructor(){
         this.result = 200;

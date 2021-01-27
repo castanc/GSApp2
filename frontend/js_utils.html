@@ -109,16 +109,6 @@
             document.querySelector(`#${lbl}`).style.display = "none";
         }
 
-        function changeButtonText(btn, text) {
-            let changed = false;
-            let currentText = document.querySelector(`#${btn}`).innerHTML;
-            if (currentText.toLowerCase().indexOf(text.toLowerCase()) < 0) {
-                currentText = `${text} ${currentText}`;
-                document.querySelector(`#${btn}`).innerHTML = currentText;
-                changed = true;
-            }
-            return changed;
-        }
 
 
 
