@@ -6,24 +6,30 @@
   </button>
 
   <div class="collapse navbar-collapse" id="navbarsExample03">
-    <ul class="navbar-nav mr-auto">
+    <ul class="navbar-nav mr-auto big-font">
       <!--
       <li class="nav-item active">
         <a class="nav-link" href="#" onclick="goHome()">Nuevo <span class="sr-only">(current)</span></a>
       </li>
       -->
       <li class="nav-item">
-        <a class="btn btn-primary" onclick="newRecord()">Nuevo</a>
+        <a class="btn btn-primary">Batch Files</a>
       </li>
-
+      <li>|</li>
       <li class="nav-item">
-        <a class="btn btn-primary" >Batch Files</a>
+        <a class="btn btn-primary">Admin</a>
       </li>
+      <li>|</li>
       <li class="nav-item">
-        <a class="btn btn-primary" >Admin</a>
+        <a class="btn btn-primary">Settings</a>
       </li>
+      <li>|</li>
       <li class="nav-item">
-        <a class="btn btn-primary" >Settings</a>
+        <a class="btn btn-secondary" onclick="cancelSubmit()">Nuevo Registro</a>
+      </li>
+      <li>|</li>
+      <li id="submitArea">
+        <a class="btn btn-success" onclick="processForm()">Guardar</a>
       </li>
       <!--
       <li class="nav-item dropdown">

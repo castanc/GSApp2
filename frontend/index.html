@@ -33,16 +33,15 @@
 
 <body class="big-font">
   <div class="container-fluid">
-    <div class="row">
-      <hr>
-    </div>
     <div class="big-font">
       <?!= include('frontend/navbar'); ?>
     </div>
     <div id="mainContent">
       <form id="myForm">
         <div id="common">
-
+          <div class="row">
+            <hr>
+          </div>
           <div class="row">
             <div class="col-md-6">
               <label for="FECHA">Fecha</label>
@@ -62,15 +61,12 @@
             </div>
           </div>
         </div>
-        
+
         <div class="row">
           <hr>
         </div>
-        <div class="row">
-          <div class="col-md-6">
-            <label for="REC_TYPE">Record Type</label>
-          </div>
-          <div class="col-md-6">
+        <div id="recTypeRow" class="row">
+          <div class="col-md-12">
             <div id="REC_TYPE">
               <?!= getRecTypes(); ?>
             </div>
@@ -80,7 +76,6 @@
           <hr>
         </div>
     </div>
-
     <div id="content"></div>
   </div>
 
@@ -91,23 +86,6 @@
   </div>
   <div id="childContent">
     <div id="rows"></div>
-  </div>
-  <div id="submitArea">
-    <div class="row">
-      <hr>
-    </div>
-    <div class="fat-row">
-      <div class="col-md-12">
-        <button type="button" class="btn btn-secondary btn-block fat-row big-font"
-          onclick="cancelRequest()">Cancel</button>
-      </div>
-    </div>
-    <div class="fat-row">
-      <div class="col-md-12">
-        <button id="btnSubmit" type="button" class="btn btn-success btn-block fat-row big-font"
-          onclick="processForm()">Submit</button>
-      </div>
-    </div>
   </div>
   <div id="result" class="container h4 mb-4 text-info text-center"></div>
   <div id="error" class="container h4 mb-4 text-danger"></div>

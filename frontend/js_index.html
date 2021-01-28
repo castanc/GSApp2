@@ -278,23 +278,23 @@
             renderFoodItems();
             requiredFields = "REC_TYPE,FECHA,HORA,MEAL_TYPES";
             initializeData(requiredFields);
-            htmlSelect = getHtmlSelectFiltered(Items.arr, "MT", "Select Meal Type", true);
+            htmlSelect = getHtmlSelectFiltered(Items.arr, "MT", "Selecione Tipo de Comida", true);
             writeInnerHtml("MEAL_TYPES", htmlSelect);
 
-            htmlSelect = getHtmlSelectFiltered(Items.arr, "FC", "Select Category");
+            htmlSelect = getHtmlSelectFiltered(Items.arr, "FC", "Seleccione Categoria");
             writeInnerHtml("FOOD_CATEGORIES", htmlSelect);
         }
         else if (recType == "EXE") {
             requiredFields = "REC_TYPE,FECHA,HORA";
             initializeData(requiredFields);
-            htmlSelect = getSelect("ExeItems", ExeItems.arr, 0, 1, "Select Sport", "", true, 1);
+            htmlSelect = getSelect("ExeItems", ExeItems.arr, 0, 1, "Select Deporte", "", true, 1);
             writeInnerHtml("EXE_ITEMS", htmlSelect);
         }
         else if (recType == "DRUG") {
             requiredFields = "REC_TYPE,FECHA,HORA,DRUGID,CANT";
             initializeData(requiredFields);
             Data.update("REC_TYPE", recType);
-            htmLSelect = getSelect("DrugItems", DrugItems.arr, 0, 1, "Select Drug", "", true, 1);
+            htmLSelect = getSelect("DrugItems", DrugItems.arr, 0, 1, "Select Droga", "", true, 1);
             writeInnerHtml("DRUG_ITEMS", htmLSelect);
         }
         else if (recType == "PRS") {
@@ -325,6 +325,9 @@
             writeInnerHtml("modalBody",response.messages);
             showDiv("modalPopUp");
         }
+        hideDiv("common");
+        hideDiv("recTypeRow");
+        showDiv("submitArea");
 
     }
 
@@ -414,15 +417,21 @@
         ExeItems.arr = JSON.parse(json);
         console.log("processExeItemsRequest()")
         console.log("ExeItems", ExeItems);
-        let selectExeType = getSelect("ExeItems", ExeItems.arr, 0, 1, "Select Sport", "", true, 1);
+        let selectExeType = getSelect("ExeItems", ExeItems.arr, 0, 1, "Seleccione Deporte", "", true, 1);
         writeInnerHtml("EXE_ITEMS", selectExeType);
     }
 
 
     function processDrugItemsRequest(json) {
         DrugItems.arr = JSON.parse(json);
-        let selectDrugType = getSelect("DrugItems", DrugItems.arr, 0, 1, "Select Drug", "", true, 1);
+        let selectDrugType = getSelect("DrugItems", DrugItems.arr, 0, 1, "Seleccione Droga", "", true, 1);
         writeInnerHtml("DRUG_ITEMS", selectDrugType);
+    }
+
+    function processRTChange(json)
+    {
+        showDiv("mainContent", false);
+        processResponse(json);
     }
 
     function processResponse(json) {
@@ -434,8 +443,6 @@
             for (var i = 0; i < response.html.length; i++) {
                 writeInnerHtml(response.html[i].key, response.html[i].value)
             }
-            disableButtons(false);
-            showDiv("mainContent", true);
 
             let msg = "";
             for (var i = 0; i < response.messages.lenght; i++) {
@@ -443,7 +450,7 @@
             }
             writeInnerHtml("result", msg);
             processData(recType, response.data);
-            showDiv("submitArea",true);
+            hideDiv("recTypeRow");
         }
         else {
             let row = `<tr><td>Server Error</td><td>${response.result}</td></tr>`;
@@ -453,7 +460,6 @@
 
             let table = `<table>${row}</table>`;
             writeInnerHtml("error", table);
-
         }
     }
 
@@ -477,6 +483,13 @@
     }
 
 
+    function cancelSubmit()
+    {
+        console.log("cancelSubmit()");
+        newRecord();
+        showDiv("common");
+    }
+
     function newRecord(){
         console.log("newRecord");
         refreshDate();
@@ -489,15 +502,17 @@
         // writeInnerHtml("rows","");
 
         showDiv("common");
+        showDiv("recTypeRow");
         hideDiv("submitArea");
         hideDiv("content");
+        hideDiv("rows");
         disableButtons(false);
 
     }
 
     function initialize() {
         console.log("initialize");
-        htmlRecType = getHtmlSelectFiltered(Items.arr, "RT", "Select Record", true);
+        htmlRecType = getHtmlSelectFiltered(Items.arr, "RT", "Seleccione Registro", true);
         newRecord();
 
         setTimeout(function () {
@@ -554,6 +569,7 @@
             return;
 
         Data.update("REC_TYPE", e);
+        hideDiv("common");
         writeInnerHtml("result", "");
         writeInnerHtml("error", "");
         writeInnerHtml("btnSubmit","Submit");
@@ -592,7 +608,7 @@
 
     function onchange_FC(e) {
         foodCategory = e;
-        let selectFoodItems = getHtmlSelectFiltered(FoodItems.arr, foodCategory, "Select Food Item", "", "FoodItems");
+        let selectFoodItems = getHtmlSelectFiltered(FoodItems.arr, foodCategory, "Seleccione Alimento", "", "FoodItems");
         writeInnerHtml("FOOD_ITEMS", selectFoodItems);
     }
 
