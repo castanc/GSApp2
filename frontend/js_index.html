@@ -429,8 +429,7 @@
         showMessage("Response received from Server");
 
         response = JSON.parse(json);
-        console.log("processResponse()");
-        console.log(response);
+        console.log("processResponse():",response);
         if (response.result == 200) {
             for (var i = 0; i < response.html.length; i++) {
                 writeInnerHtml(response.html[i].key, response.html[i].value)
@@ -487,17 +486,17 @@
         records = [];
         recType = "";
 
-        writeInnerHtml("rows","");
-        disableButtons(false);
+        // writeInnerHtml("rows","");
 
         showDiv("common");
         hideDiv("submitArea");
-        hideDiv("mainContent");
+        hideDiv("content");
+        disableButtons(false);
 
     }
 
     function initialize() {
-
+        console.log("initialize");
         htmlRecType = getHtmlSelectFiltered(Items.arr, "RT", "Select Record", true);
         newRecord();
 
@@ -578,6 +577,7 @@
         else {
             writeInnerHtml("content", html);
         }
+        showDiv("content");
 
     }
 
@@ -681,6 +681,7 @@
 
 
     //Main entry point
+    console.log("js_index onLoad")
     window.addEventListener('load', initialize);
 
 </script>
