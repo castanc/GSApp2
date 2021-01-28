@@ -31,50 +31,47 @@
 <?!= include('frontend/js_index'); ?>
 
 
-<body class="big-font">
+<body>
   <div class="container-fluid">
-    <div class="row">
-      <hr>
-    </div>
-    <div id="title" class="row">
-      <p id="titleText" class="text-info text-center">Personal Record Keeper</p>
-    </div>
-    <div class="row">
-      <hr>
-    </div>
     <div class="big-font">
-      <?!= include('frontend/navbar'); ?>
-    </div>
-    <div id="mainContent">
+    <?!= include('frontend/navbar'); ?>
+  </div>
+
+    <div class="row"><hr></div>
+
+    <div id="mainContent" class="big-font">
       <form id="myForm">
         <div id="common">
+
           <div class="row">
-            <div class="col-md-6">
+            <div class="col-md-4">
               <label for="FECHA">Fecha</label>
             </div>
-            <div class="col-md-6">
+            <div class="col-md-8">
               <input type="date" class="form-control big-font" id="FECHA" name="FECHA" placeholder="Fecha" required>
             </div>
-            <div class="row">
-              <div class="col-md-6">
+          </div>
+
+          <div class="row">
+              <div class="col-md-4">
                 <label for="HORA">Hora</label>
               </div>
-              <div class="col-md-6">
+              <div class="col-md-8">
                 <input type="time" id="HORA" name="HORA" placeholder="HH:MM"
-                  pattern="^([0-1]?[0-9]|2[0-4]):([0-5][0-9])(:[0-5][0-9])?$" class="inputs time" required>
+                  pattern="^([0-1]?[0-9]|2[0-4]):([0-5][0-9])(:[0-5][0-9])?$" class="form-control big-font" required>
               </div>
             </div>
           </div>
+
+          <div class="row"><hr></div>
+
           <div class="row">
-            <hr>
-          </div>
-          <div class="row">
-            <div class="col-md-6">
+            <div class="col-md-4">
               <label for="REC_TYPE">Record Type</label>
             </div>
-            <div class="col-md-6">
+            <div class="col-md-8">
               <div id="REC_TYPE">
-                <?!= getRecTypes(); ?>
+               
               </div>
             </div>
           </div>
@@ -101,7 +98,7 @@
     <div class="fat-row">
       <div class="col-md-12">
         <button type="button" class="btn btn-secondary btn-block fat-row big-font"
-          onclick="cancelRequest()">Cancel</button>
+          onclick="newRecord()">Cancel</button>
       </div>
     </div>
     <div class="fat-row">
@@ -147,6 +144,11 @@
     <?!= getDataDeclarations("Items,FoodItems,DrugItems,ExeItems"); ?>
     <?!= getItems(); ?>
 
+  </script>
+  <script>
+      function goHome() {
+        console.log("home");
+      }
   </script>
 </body>
 

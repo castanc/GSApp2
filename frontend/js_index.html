@@ -10,6 +10,7 @@
     let requiredFields = "";
     let response;
     let confirming = false;
+    let htmlRecType = "";
 
 
 
@@ -393,16 +394,11 @@
 
 
             console.log("Data",Data);
-            sessionStorage.setItem("data", JSON.stringify(Data));
-            sessionStorage.setItem("records", JSON.stringify(records));
+            newRecord();
 
              google.script.run.withFailureHandler(failureHandler)
                 .withSuccessHandler(processResponse)
                 .processForm(Data, recordsBase);
-
-            disableButtons(false);
-            showDiv("mainContent", true);
-
         }
         else {
             showError("Some fields are required");
@@ -482,13 +478,34 @@
     }
 
 
+    function newRecord(){
+        console.log("newRecord");
+        refreshDate();
+
+        //writeInnerHtml("warning-bar-table","");
+        writeInnerHtml("REC_TYPE", htmlRecType);
+        records = [];
+        recType = "";
+
+        writeInnerHtml("rows","");
+        disableButtons(false);
+
+        showDiv("common");
+        hideDiv("submitArea");
+        hideDiv("mainContent");
+
+    }
 
     function initialize() {
-        //google.script.run.withSuccessHandler(onSuccess)
-        //    .loadSettings();
-        writeInnerHtml("warning-bar-table","");
-        showDiv("submitArea",false);
-        refreshDate();
+
+        htmlRecType = getHtmlSelectFiltered(Items.arr, "RT", "Select Record", true);
+        newRecord();
+
+        setTimeout(function () {
+            // This hides the address bar:
+            window.scrollTo(0, 1);
+        }, 0);
+
         if (FoodItems.arr.length == 0) {
             google.script.run.withFailureHandler(failureHandler).withSuccessHandler(getFoodItemsHandler)
                 .getFoodItems();
@@ -501,10 +518,6 @@
             google.script.run.withFailureHandler(failureHandler).withSuccessHandler(getDrugItemsHandler)
                 .getDrugItems();
         }
-        setTimeout(function () {
-            // This hides the address bar:
-            window.scrollTo(0, 1);
-        }, 0);
     }
 
 
@@ -542,8 +555,6 @@
             return;
 
         Data.update("REC_TYPE", e);
-        console.log("onchange_RT");
-        console.log(Data);
         writeInnerHtml("result", "");
         writeInnerHtml("error", "");
         writeInnerHtml("btnSubmit","Submit");
@@ -554,7 +565,6 @@
         let = url = "";
         records = [];
         writeInnerHtml("rows", "");
-        hideTop();
 
         if (html.length == 0) {
             console.log("getting form from server");
@@ -646,23 +656,7 @@
     }
 
 
-    function hideTop()
-    {
-        showDiv("menu",false);
-        showDiv("common",false);
-    }
-    function cancelRequest()
-    {
-        let select = document.getElementById("REC_TYPE");
-        select.selectedValue = "";
-        showDiv("menu",true);
-        showDiv("common",true);
-        showDiv("submitArea",false);
-        showDiv("content",false);
-        showDiv("childContent",false);
-        refreshDate();
-        records = [];
-    }
+  
 
     function onSuccess(html) {
         showDiv('secondary', false);
