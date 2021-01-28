@@ -33,9 +33,13 @@
 
 <body class="big-font">
   <div class="container-fluid">
-    <div id="title" class="row">
+    <div class="row">
       <hr>
-      <p class="text-info text-center">Personal Record Keeper</p>
+    </div>
+    <div id="title" class="row">
+      <p id="titleText" class="text-info text-center">Personal Record Keeper</p>
+    </div>
+    <div class="row">
       <hr>
     </div>
     <div id="menu">
@@ -60,29 +64,38 @@
     <div id="mainContent">
       <form id="myForm">
         <div id="common">
-          <div class="form-row">
-            <div class="form-group col-md-6">
+          <div class="row">
+            <div class="col-md-6">
               <label for="FECHA">Fecha</label>
-              <input type="date" class="form-control" id="FECHA" name="FECHA" placeholder="Fecha" required>
-
             </div>
-            <div class="form-group col-md-6">
-              <label for="HORA">Hora</label>
-              <input type="time" id="HORA" name="HORA" placeholder="HH:MM"
-                pattern="^([0-1]?[0-9]|2[0-4]):([0-5][0-9])(:[0-5][0-9])?$" class="inputs time" required>
-
+            <div class="col-md-6">
+              <input type="date" class="form-control big-font" id="FECHA" name="FECHA" placeholder="Fecha" required>
             </div>
-          </div>
-          <div class="form-group">
-            <label for="REC_TYPE">Record Type</label>
-            <div id="REC_TYPE" class="text-center">
-              <?!= getRecTypes(); ?>
+            <div class="row">
+              <div class="col-md-6">
+                <label for="HORA">Hora</label>
+              </div>
+              <div class="col-md-6">
+                <input type="time" id="HORA" name="HORA" placeholder="HH:MM"
+                  pattern="^([0-1]?[0-9]|2[0-4]):([0-5][0-9])(:[0-5][0-9])?$" class="inputs time" required>
+              </div>
             </div>
           </div>
-          <div class="form-group">
-            <div class="row fat-row">
-              <hr>
+          <div class="row">
+            <hr>
+          </div>
+          <div class="row">
+            <div class="col-md-6">
+              <label for="REC_TYPE">Record Type</label>
             </div>
+            <div class="col-md-6">
+              <div id="REC_TYPE">
+                <?!= getRecTypes(); ?>
+              </div>
+            </div>
+          </div>
+          <div class="row fat-row">
+            <hr>
           </div>
         </div>
 
@@ -98,14 +111,19 @@
     <div id="rows"></div>
   </div>
   <div id="submitArea">
+    <div class="row">
+      <hr>
+    </div>
     <div class="fat-row">
       <div class="col-md-12">
-        <button type="button" class="btn btn-secondary btn-block fat-row big-text" onclick="cancelRequest()">Cancel</button>
+        <button type="button" class="btn btn-secondary btn-block fat-row big-font"
+          onclick="cancelRequest()">Cancel</button>
       </div>
     </div>
     <div class="fat-row">
       <div class="col-md-12">
-        <button id="btnSubmit" type="button" class="btn btn-success btn-block fat-row big-text" onclick="processForm()">Submit</button>
+        <button id="btnSubmit" type="button" class="btn btn-success btn-block fat-row big-font"
+          onclick="processForm()">Submit</button>
       </div>
     </div>
   </div>

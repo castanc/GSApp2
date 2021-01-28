@@ -448,7 +448,7 @@
             }
             writeInnerHtml("result", msg);
             processData(recType, response.data);
-
+            showDiv("submitArea",true);
         }
         else {
             let row = `<tr><td>Server Error</td><td>${response.result}</td></tr>`;
@@ -486,6 +486,8 @@
     function initialize() {
         //google.script.run.withSuccessHandler(onSuccess)
         //    .loadSettings();
+        writeInnerHtml("warning-bar-table","");
+        showDiv("submitArea",false);
         refreshDate();
         if (FoodItems.arr.length == 0) {
             google.script.run.withFailureHandler(failureHandler).withSuccessHandler(getFoodItemsHandler)
@@ -535,18 +537,22 @@
     }
 
     function onchange_RT(e) {
+        console.log("onchange_RT",e);
+        if ( e == "")
+            return;
+
         Data.update("REC_TYPE", e);
         console.log("onchange_RT");
         console.log(Data);
         writeInnerHtml("result", "");
         writeInnerHtml("error", "");
+        writeInnerHtml("btnSubmit","Submit");
 
 
         recType = e;
         let html = "";
         let = url = "";
         records = [];
-        //renderFoodItems();
         writeInnerHtml("rows", "");
         hideTop();
 
@@ -644,12 +650,18 @@
     {
         showDiv("menu",false);
         showDiv("common",false);
-
     }
     function cancelRequest()
     {
+        let select = document.getElementById("REC_TYPE");
+        select.selectedValue = "";
         showDiv("menu",true);
         showDiv("common",true);
+        showDiv("submitArea",false);
+        showDiv("content",false);
+        showDiv("childContent",false);
+        refreshDate();
+        records = [];
     }
 
     function onSuccess(html) {
