@@ -16,6 +16,13 @@
 
     }
 
+    function clearDiv(id)
+    {
+        let doc = document.getElementById(id);
+        if ( doc!= undefined)
+            doc.innerHTML = "";
+    }
+
     function setValue(fieldId, value) {
         var x = document.forms["myForm"][fieldId];
         if (x != undefined)

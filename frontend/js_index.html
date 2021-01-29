@@ -11,6 +11,7 @@
     let response;
     let confirming = false;
     let htmlRecType = "";
+    let formChanged = false;
 
 
 
@@ -143,24 +144,24 @@
         if (records.length > 0) {
 
             row = `<div class="row row-fat">
+                <div class="col-md-1"></div>
             <div class="col-md-1"></div>
             <div class="col-md-8">Drug Item</div>
             <div class="col-md-2">Cant</div>
-            <div class="col-md-1"></div>
             </div>
             `;
 
             for (var i = 0; i < records.length; i++) {
                 row = `${row}
             <div class="row row-fat">
+                <div class="col-md-1">
+                    <img src="${records[i].url}" class="thumb"></img>
+                    </div>
                 <div class="col-md-1 cursorPointer"><i class="fas fa-trash-alt"  onclick="removeDrug('${DrugItems}',${i})"></i></div>
                 <div class="col-md-8" >${records[i].descr}</div>
                 <div class="col-md-2">
                     <input type="number" id="q{${i}} name="q${i}" placeholder="Cant" value="${records[i].cant}" onchange="setRecord(${i},this.value)">
                 </div>
-                <div class="col-md-1">
-                    <img src="${records[i].url}" class="thumb"></img>
-                    </div>
             </div>`;
             }
         }
@@ -174,6 +175,7 @@
 
             row = `<div class="row row-fat">
             <div class="col-md-1"></div>
+            <div class="col-md-1"></div>
             <div class="col-md-4">Sport</div>
             <div class="col-md-1">Dist</div>
             <div class="col-md-1">Un</div>
@@ -184,6 +186,7 @@
             for (var i = 0; i < records.length; i++) {
                 row = `${row}
             <div class="row row-fat">
+                <div class="col-md-1"></div>
                 <div class="col-md-1 cursorPointer"><i class="fas fa-trash-alt"  onclick="removeExe('${DrugItems}',${i})"></i></div>
                 <div class="col-md-4">${records[i].descr}</div>
                 <div class="col-md-1">
@@ -272,6 +275,8 @@
     }
 
     function processData(recType, data) {
+        console.log(`processData() ${recType}`)
+        console.log("data:",data);
         records = [];
         let htmlSelect = "";
         if (recType == "FOOD") {
@@ -325,9 +330,6 @@
             writeInnerHtml("modalBody",response.messages);
             showDiv("modalPopUp");
         }
-        hideDiv("common");
-        hideDiv("recTypeRow");
-        showDiv("submitArea");
 
     }
 
@@ -346,8 +348,43 @@
     function onBlurField(id, value) {
         console.log(`onBlurField() ${id} ${value}`);
         Data.update(id, value);
+        
     }
 
+    function processResponSubmitForm(json)
+    {
+        let msg = "Respuesta recibida del servidor.";
+        showMessage(msg);
+        response = JSON.parse(json);
+        console.log("Response received from Server. processResponSubmitForm():",response);
+        if (response.result == 200) {
+            for (var i = 0; i < response.html.length; i++) {
+                writeInnerHtml(response.html[i].key, response.html[i].value)
+            }
+
+            msg = "";
+            for (var i = 0; i < response.messages.lenght; i++) {
+                msg = `${msg}<p class="text-info>${response.messages[i]}</p></br>`;
+            }
+            //writeInnerHtml("result", msg);
+            if ( msg == "" && response.messages.lenght > 0)
+            {
+                msg = response.messages[0];
+            }
+            console.log("messaage received:",msg);
+            showMessage(msg);
+            newRecord();
+        }
+        else {
+            let row = `<tr><td>Server Error</td><td>${response.result}</td></tr>`;
+            for (var i = 0; i < response.error.length; i++) {
+                row = `${row}<tr><td>${response.error[i].key}</td><td>${response.error[i].value}</td></tr>`;
+            }
+
+            let table = `<table>${row}</table>`;
+            writeInnerHtml("error", table);
+        }        
+    }
 
     function changeButtonText(btn, text) {
             let changed = false;
@@ -365,18 +402,23 @@
         console.log("processForm()");
         if ( !confirming )
         {
-            changeButtonText("btnSubmit","Confirm ");
+            //changeButtonText("submitMenu","Confirm ");
+            writeInnerHtml("btnSubmit","Confirmar");
             confirming = true;
             return;
         }
         else
         {
+            writeInnerHtml("btnSubmit","Guardar");
             confirming = false;
         }
         if (document.forms["myForm"].checkValidity()) {
             disableButtons(true);
-            showDiv("mainContent", false);
-            showMessage("Sending data for processing...");
+            showMessage("Enviando datos al Servidor...");
+            hideDiv("content");
+            hideDiv("rows");
+            showDiv("DIVfechaHora");
+            showDiv("DIVrecType");
 
 
 
@@ -400,7 +442,7 @@
             newRecord();
 
              google.script.run.withFailureHandler(failureHandler)
-                .withSuccessHandler(processResponse)
+                .withSuccessHandler(processResponSubmitForm)
                 .processForm(Data, recordsBase);
         }
         else {
@@ -430,15 +472,12 @@
 
     function processRTChange(json)
     {
-        showDiv("mainContent", false);
         processResponse(json);
     }
 
     function processResponse(json) {
-        showMessage("Response received from Server");
-
         response = JSON.parse(json);
-        console.log("processResponse():",response);
+        console.log("Response received from Server. processResponse():",response);
         if (response.result == 200) {
             for (var i = 0; i < response.html.length; i++) {
                 writeInnerHtml(response.html[i].key, response.html[i].value)
@@ -450,7 +489,8 @@
             }
             writeInnerHtml("result", msg);
             processData(recType, response.data);
-            hideDiv("recTypeRow");
+            //todo: show only if form modified
+            showDiv("submitArea");
         }
         else {
             let row = `<tr><td>Server Error</td><td>${response.result}</td></tr>`;
@@ -487,33 +527,33 @@
     {
         console.log("cancelSubmit()");
         newRecord();
-        showDiv("common");
     }
 
     function newRecord(){
         console.log("newRecord");
+        formChanged = false;
+        confirming = false;
         refreshDate();
 
-        //writeInnerHtml("warning-bar-table","");
         writeInnerHtml("REC_TYPE", htmlRecType);
+        showDiv("DIVfechaHora");
+        showDiv("DIVrecType");
+        clearDiv("content");
+        clearDiv("rows");
+        hideDiv("submitArea");
         records = [];
         recType = "";
 
-        // writeInnerHtml("rows","");
-
-        showDiv("common");
-        showDiv("recTypeRow");
-        hideDiv("submitArea");
-        hideDiv("content");
-        hideDiv("rows");
         disableButtons(false);
-
+        console.log("newRecord END");
     }
 
     function initialize() {
         console.log("initialize");
         htmlRecType = getHtmlSelectFiltered(Items.arr, "RT", "Seleccione Registro", true);
         newRecord();
+        showMessage("Ready");
+
 
         setTimeout(function () {
             // This hides the address bar:
@@ -558,6 +598,12 @@
 
 
 
+    function clearRows()
+    {
+        records = [];
+        clearDiv("rows");
+        showDiv("rows");
+    }
 
     function onchange_SP(e) {
         Data.update("SPORTID", e);
@@ -569,10 +615,13 @@
             return;
 
         Data.update("REC_TYPE", e);
-        hideDiv("common");
-        writeInnerHtml("result", "");
-        writeInnerHtml("error", "");
-        writeInnerHtml("btnSubmit","Submit");
+        clearDiv("result");
+        clearDiv("error");
+        hideDiv("DIVfechaHora");
+        hideDiv("DIVrecType")
+        showDiv("content");
+        clearRows();
+        
 
 
         recType = e;
@@ -593,7 +642,6 @@
         else {
             writeInnerHtml("content", html);
         }
-        showDiv("content");
 
     }
 
@@ -617,6 +665,7 @@
         Data.update("DRUGID", e);
         let di = DrugItems.arr.filter(x => x[0] == e);
         if (di.length > 0) {
+            formChanged = true;
             record = {};    // new RecordItem();
             record.descr = di[0][1];
             record.url = di[0][4];
@@ -636,6 +685,7 @@
         Data.update("SPORTID", e);
         let di = ExeItems.arr.filter(x => x[0] == e);
         if (di.length > 0) {
+            formChanged = true;
             record = {};    // new RecordItem();
             record.descr = di[0][1];
             record.url = "";
@@ -654,9 +704,10 @@
 
     //todo: remove assigned items from combo
     function onchange_FoodItems(e) {
-        sessionStorage.setItem("FoodItems", JSON.stringify(FoodItems.arr));
+        console.log("onchange_FoodItems");
         let fi = FoodItems.arr.filter(x => x[1] == e);
         if (fi.length > 0) {
+            formChanged = true;
             record = {};    // new RecordItem();
             record.descr = fi[0][2];
             record.url = fi[0][9];
@@ -668,14 +719,12 @@
             records.push(record);
             renderFoodItems();
         }
-
     }
 
 
   
 
     function onSuccess(html) {
-        showDiv('secondary', false);
         refreshDate();
 
         var div = document.getElementById("formDiv");

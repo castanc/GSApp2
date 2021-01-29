@@ -34,11 +34,11 @@
 <body class="big-font">
   <div class="container-fluid">
     <div class="big-font">
-      <?!= include('frontend/navbar'); ?>
+      <?!= include('frontend/navbar1'); ?>
     </div>
     <div id="mainContent">
       <form id="myForm">
-        <div id="common">
+        <div id="DIVfechaHora">
           <div class="row">
             <hr>
           </div>
@@ -62,16 +62,15 @@
           </div>
         </div>
 
-        <div class="row">
-          <hr>
-        </div>
-        <div id="recTypeRow" class="row">
-          <div class="col-md-12">
-            <div id="REC_TYPE">
-              <?!= getRecTypes(); ?>
+        <div  id="DIVrecType" class="row">
+          <!--
+          <div class="col-md-6">
+            <label for="SELECT_RT">Registro</label>
+          </div>
+          -->
+            <div id="REC_TYPE" class="col-md-12">
             </div>
           </div>
-        </div>
         <div class="row fat-row">
           <hr>
         </div>
@@ -84,15 +83,18 @@
   </div>
   </form>
   </div>
-  <div id="childContent">
+  <div id="DIVchildContent">
     <div id="rows"></div>
   </div>
-  <div id="result" class="container h4 mb-4 text-info text-center"></div>
-  <div id="error" class="container h4 mb-4 text-danger"></div>
   </div>
 
   <div class="footer-wrapper flex-shrink-0 p-10 text-center bg-content">
-    <div class="footer">© 2021 Cesar Castaño</div>
+ 
+    <div class="footer">
+      <div id="result" class="container h4 mb-4 text-info text-center"></div>
+      <div id="error" class="container h4 mb-4 text-danger"></div>
+        © 2021 Cesar Castaño
+    </div>
   </div>
 
   <!-- Modal -->
