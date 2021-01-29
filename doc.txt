@@ -62,6 +62,10 @@ and also export to html dashboard
 todo: create index files to check unique records
 checking in a big string, without filtering an array (faster)
 
+KEEP in database:
+-status of long process
+-allow to cancel process 
+
 
         
 
