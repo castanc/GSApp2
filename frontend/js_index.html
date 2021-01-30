@@ -96,6 +96,14 @@
         }
     }
 
+    function setTime(i,value)
+    {
+        if (i < records.length) {
+            records[i].time = value;
+        }
+
+    }
+
     function calcDivision(id, value) {
 
     }
@@ -196,7 +204,7 @@
                     ${records[i].unit}
                 </div>
                 <div class="col-md-3">
-                    <input type="number" id="h{${i}} name="t${i}" placeholder="HH:MM:SS" pattern="^([0-1]?[0-9]|2[0-4]):([0-5][0-9])(:[0-5][0-9])?$" value="${records[i].time}" onchange="setRecord(${i},this.value)">
+                    <input type="number" id="h{${i}} name="t${i}" placeholder="HH:MM:SS" pattern="^([0-1]?[0-9]|2[0-4]):([0-5][0-9])(:[0-5][0-9])?$" value="${records[i].time}" onchange="setRecordTime(${i},this.value)">
                 </div>
             </div>`;
             }
@@ -274,11 +282,9 @@
         }
     }
 
-    function processData(recType, data) {
-        console.log(`processData() ${recType}`)
-        console.log("data:",data);
+    function initializeFormRecType()
+    {
         records = [];
-        let htmlSelect = "";
         if (recType == "FOOD") {
             renderFoodItems();
             requiredFields = "REC_TYPE,FECHA,HORA,MEAL_TYPES";
@@ -323,6 +329,13 @@
             requiredFields = "REC_TYPE,FECHA,HORA,URL";
             initializeData(requiredFields);
         }
+
+    }
+
+    function processData(recType, data) {
+        console.log(`processData() ${recType}`)
+        console.log("data:",data);
+        initializeFormRecType();
         Data.update("REC_TYPE", recType);
 
         if ( response.showModal )
@@ -431,8 +444,13 @@
             for (var i = 0; i < records.length; i++) {
                 let r = new RecordItemBase();
                 r.itemId = records[i].itemId;
-                if (recType == "FOOD")
+                if (recType == "FOOD" || recType == "DRUG")
                     r.cant = records[i].cant;
+                else if ( recType == "EXE")
+                {
+                    r.cant = records[i].cant;
+                    r.time = records[i].time;
+                }
 
                 recordsBase.push(r);
             }
@@ -481,6 +499,7 @@
         if (response.result == 200) {
             for (var i = 0; i < response.html.length; i++) {
                 writeInnerHtml(response.html[i].key, response.html[i].value)
+                localStorage.setItem(`${response.html[i].key}_${recType}`,response.html[i].value);
             }
 
             let msg = "";
@@ -630,6 +649,11 @@
         records = [];
         writeInnerHtml("rows", "");
 
+        html = localStorage.getItem(`content_${recType}`);
+        console.log("html from local storage",html);
+        if ( html == undefined )
+            html = "";
+
         if (html.length == 0) {
             console.log("getting form from server");
             let row = Items.arr.filter(x => x[0] == "RT" && x[1] == recType);
@@ -641,6 +665,7 @@
         }
         else {
             writeInnerHtml("content", html);
+            initializeFormRecType();
         }
 
     }

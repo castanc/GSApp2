@@ -20,7 +20,7 @@ function testImportBatchGLUC()
     }
     catch(ex)
     {
-        SysLog.logException(ex,"test");s
+        SysLog.logException(ex,"test");
     }
 
 }
@@ -34,7 +34,7 @@ function testImportLegacy()
     }
     catch(ex)
     {
-        SysLog.logException(ex,"test");s
+        SysLog.logException(ex,"test");
     }
 }
 

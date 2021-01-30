@@ -69,7 +69,11 @@ export class Utils {
         try {
             sDate = Utilities.formatDate(dt, Session.getScriptTimeZone(), 'HH:mm');
         }
-            return sDate;
+        catch(ex)
+        {
+
+        }
+        return sDate;
     }
 
 
@@ -98,7 +102,8 @@ export class Utils {
         if (id != null) {
             let file = DriveApp.getFileById(id);
             if (file != undefined) {
-                fi = new FileInfo(file);
+                fi = new FileInfo();
+                fi.setFileInfo(file);
                 fi.nameUrl = name;
             }
         }
@@ -160,7 +165,8 @@ export class Utils {
             let file = files.next();
             //if ( !file.isTrashed)
             {
-                let fi = new FileInfo(file);
+                let fi = new FileInfo();
+                fi.setFileInfo(file);
                 fileInfos.push(fi);
             }
         }
@@ -387,6 +393,39 @@ export class Utils {
 
         return seconds;
     }
+
+    static getSeconds2(dt:string, sep = ":"):number{
+        let seconds = 0;
+        let p;
+        try
+        {
+            if (sep==""  )
+            {
+                seconds = Number(dt.substring(0,2)) +
+                    Number (dt.substring(2,2)) + 
+                    Number (dt.substring(4,2));
+            }
+            else
+            {
+                p = dt.split(sep);
+                if ( p.length == 2 )
+                {
+                    seconds = Number(p[0])*60 + Number(p[1]);
+                }
+                else if ( p.length >= 3 )
+                {
+                    seconds = Number(p[0])*60*60 + Number(p[1])*60 + Number(p[2]);
+                }
+            }
+        }
+        catch(ex)
+        {
+
+        }
+        return seconds;
+    }
+
+
 
     static getRange(ss, sheetName: string, range: string = "") {
         //todo: enable gettign specific range

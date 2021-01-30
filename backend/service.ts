@@ -676,7 +676,16 @@ export class Service {
             lastRow++;
 
             for (var i = 0; i < records.length; i++) {
-                let row = [lastRow, id, "", records[i].itemId, records[i].cant];
+                let row;
+                
+                if ( recType == "EXE")
+                {
+                    let seconds = Utils.getSeconds2(records[i].time);
+                    row  = [lastRow, id, "", records[i].itemId, records[i].cant,seconds,records[i].time];
+                }
+                else 
+                    row  = [lastRow, id, "", records[i].itemId, records[i].cant];
+
                 sheet.appendRow(row);
                 lastRow++;
             }
