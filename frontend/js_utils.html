@@ -16,10 +16,40 @@
 
     }
 
-    function clearDiv(id)
-    {
+    function getDateFromYMD(dtStr, sep = "-") {
+        let dt = null;
+        let fp = dtStr.split(" ");
+        let p;
+        try {
+            if (fp.length > 0)
+                p = fp[0].split(sep);
+            else
+                p = dtStr.split(sep);
+
+            if (p.length > 2) {
+                if (fp.length > 1) {
+                    let h = fp[1].split(":");
+                    if (h.length > 1)
+                        dt = new Date(Number(p[0]), Number(p[1] - 1), Number(p[2]),
+                            Number(h[0]), Number(h[1]));
+                    else
+                        dt = new Date(Number(p[0]), Number(p[1] - 1), Number(p[2]));
+                }
+                else dt = new Date(Number(p[0]), Number(p[1] - 1), Number(p[2]));
+            }
+
+
+
+        }
+        catch (ex) {
+
+        }
+        return dt;
+    }
+
+    function clearDiv(id) {
         let doc = document.getElementById(id);
-        if ( doc!= undefined)
+        if (doc != undefined)
             doc.innerHTML = "";
     }
 
@@ -45,10 +75,28 @@
     }
 
 
+    function getHM(dt = null) {
+        let sHour = "";
+        if (dt == null)
+            dt = new Date();
+        try {
+            sDate = dt.toString();
+            let p = sDate.split("T");
+            if (p.length > 1) {
+                p = p[1].split(":");
+                if (p.length > 1)
+                    sHour = `${p[0]}:${p[1]}`;
+            }
+        }
+        catch (ex) {
+
+        }
+        return sHour;
+    }
+
     function getSelectedValue(fieldId) {
         let select = document.getElementById(fieldId);
-        if ( select != undefined )
-        {
+        if (select != undefined) {
             // console.log(select.options);
             // console.log(select.selectedIndex);
             // console.log(select.options[select.selectedIndex]);
@@ -67,7 +115,7 @@
     }
 
 
-    function showDiv(divId, value=true) {
+    function showDiv(divId, value = true) {
         let div = document.getElementById(divId);
         if (div != undefined) {
             if (value)
@@ -75,13 +123,13 @@
             else
                 div.style.display = "none";
         }
-        else{
-            console.log(`ERROR div not found ${divId}` );
+        else {
+            console.log(`ERROR div not found ${divId}`);
             showError(`ERROR div not found ${divId}`);
-        } 
+        }
     }
 
-    function hideDiv(divId, value=false) {
+    function hideDiv(divId, value = false) {
         let div = document.getElementById(divId);
         if (div != undefined) {
             if (value)
@@ -89,9 +137,9 @@
             else
                 div.style.display = "none";
         }
-        else{
-            console.log(`ERROR div not found ${divId}` );
-        } 
+        else {
+            console.log(`ERROR div not found ${divId}`);
+        }
     }
 
 
@@ -130,8 +178,7 @@
         }
 
 
-
-
+      
     }
 
 

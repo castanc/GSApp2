@@ -12,6 +12,27 @@
     let confirming = false;
     let htmlRecType = "";
     let formChanged = false;
+    let master;
+    let detail;
+    let days = "Todos,Dom,Lun,Mar,Mie,Jue,Vie,Sab,Dom".split(",");
+    let months = "Todos,Ene,Feb,Mar,Abr,May,Jun,Jul,Ago,Sep,Oct,Nov,Dic".split(",");
+    let recTypes = "";
+    let filterRT = "";
+    let filterMes = "";
+    let filterDia = "";
+    let master2;
+    let fecha = "";
+    let year = 2021;
+    let desde = 1;
+    let hasta = 31;
+    let editMode = false;
+    let glucLevelsText = `0,59,"blueviolet";60,89,"green";90,99,"yellow";100,119,"red";120,139,"slateblue";140,159,"navy";160,179,"darkmagenta";180,999,"darkblue"`;
+    let glucLevels = [0, 0, 0, 0, 0, 0, 0, 0, 0];
+    let minG = 0;
+    let maxG = 999;
+
+
+
 
 
 
@@ -96,8 +117,7 @@
         }
     }
 
-    function setTime(i,value)
-    {
+    function setTime(i, value) {
         if (i < records.length) {
             records[i].time = value;
         }
@@ -144,9 +164,454 @@
     }
 
 
+    function getIcon(recType) {
+        let icon = "";
+        if (recType == "FOOD") icon = "fa fa-utensils";
+        else if (recType == "DRUG") icon = "fa fa-medkit";
+        else if (recType == "EXE") icon = "fas fa-swimmer";
+        else if (recType == "PRS") icon = "fa fa-stethoscope";
+        else if (recType == "WEIGHT") icon = "fas fa-weight";
+        else if (recType == "GLUC") icon = "fa fa-heart";
+        else if (recType == "EVENT") icon = "calendar-plus";
+        return icon;
+    }
+
+    function getColor(recType) {
+        let color = "";
+        if (recType == "FOOD") color = "brown";
+        else if (recType == "DRUG") color = "fa fa-medkit";
+        else if (recType == "EXE") color = "darkgreen";
+        else if (recType == "PRS") color = "darkmagenta";
+        else if (recType == "WEIGHT") color = "deepskyblue";
+        else if (recType == "GLUC") color = "darkred";
+        else if (recType == "EVENT") color = "blue";
+        return color;
+    }
+
+    function getHtmlFromArray(name, caption = "", list, required = false) {
+        let onChange = "";
+        let requiredText = "";
+
+        if (required)
+            requiredText = "required";
+
+        name = name.trim();
+
+        if (caption.length == 0)
+            caption = "None";
+
+        var options = "";   //`< option selected > ${caption} < /option>`;
+        for (var i = 0; i < list.length; i++) {
+            options = options + `<option value="${i}">${list[i]}</option>`;
+        }
+        onChange = `onChange="onChange_${name}('${name}',this.options[this.selectedIndex].value)"`;
+        return `<select id="SELECTID" name="SELECTID" ${onChange} ${required}>${options}</select>`;
+
+    }
+
+    function geSimpleHtmlFromArray(name, caption = "", list, required = false) {
+        let onChange = "";
+        let requiredText = "";
+
+        if (required)
+            requiredText = "required";
+
+        name = name.trim();
+
+        if (caption.length == 0)
+            caption = "None";
+
+        var options = "";   //`< option selected > ${caption} < /option>`;
+        for (var i = 0; i < list.length; i++) {
+            options = options + `<option value="${list[i]}}">${list[i]}</option>`;
+        }
+        onChange = `onChange="onChange_${name}('${name}',this.options[this.selectedIndex].value)"`;
+        return `<select id="SELECTID" name="SELECTID" ${onChange} ${required}>${options}</select>`;
+
+    }
+
+    //https://stackoverflow.com/questions/16096872/how-to-sort-2-dimensional-array-by-column-value
+
+    function sortFunction(a, b) {
+        if (a[3] === b[3]) {
+            return 0;
+        }
+        else {
+            return (a[3] > b[3]) ? -1 : 1;
+        }
+    }
+
+    function buildRecords(recType, id, defValue = "") {
+        result = defValue;
+        //let arr = master.filter(x=>x[1]==id);
+        // detail.foreach(item => {
+        //     if ( item[1]==id)
+        //         arr.push(item);
+        // })
+        let arr = detail.filter(x => x[1] == id);
+        if (arr.length > 0) {
+            console.log("buildRecords()", recType, id, defValue, arr, arr.length);
+            if (recType == "FOOD") {
+                let mt = Items.arr.filter(x => x[0] = "MT" && x[1] == defValue);
+                if (mt.lenght > 0)
+                    result = `${mt[2].substr(0, 4)}:`
+            }
+
+            if (recType == "FOOD") {
+                for (var i = 0; i < arr.length; i++) {
+                    let ri = FoodItems.arr.filter(x => x[1] == arr[i][3])
+                    console.log("FOOD ri", ri);
+                    if (ri.lenght > 0) {
+                        result = `${result} ${ri[2]},`;
+                    }
+                }
+            }
+            else if (recType == "DRUG") {
+                for (var i = 0; i < arr.length; i++) {
+                    let ri = DrugItems.arr.filter(x => x[1] == arr[i][1])
+                    console.log("FOOD ri", ri);
+                    if (ri.lenght > 0) {
+                        result = `${result} ${ri[2]},`;
+                    }
+                }
+            }
+            else if (recType == "EXE") {
+
+                for (var i = 0; i < arr.length; i++) {
+                    let ri = ExeItems.arr.filter(x => x[1] == arr[i][1])
+                    console.log("FOOD ri", ri);
+                    if (ri.lenght > 0) {
+                        result = `${result} ${ri[2]} ${r[4]} ${r[5]},`;
+                    }
+                }
+            }
+
+        }
+        return result;
+    }
 
 
-    function renderDrugItems() {
+    function sortArray(arr, col, desc = true) {
+        return arr.sort(sortFunction);
+
+    }
+
+
+    function sumGluc(level) {
+        let sum = 0;
+        for (var i = 0; i <= level; i++) {
+            sum += glucLevels[i];
+        }
+        return sum;
+    }
+
+    function closeedit() {
+        editMode = false;
+        clearDiv("content");
+        master = [[]];
+        detail = [[]];
+        newRecord();
+    }
+
+
+    function getTotals(glucCount) {
+        let html = "";
+        let row = "";
+        let percLine = "";
+        let sumLine = "";
+        let countLine = "";
+        let seg = glucLevelsText.split(";");
+        
+        if (glucCount > 0) {
+            seg.forEach(item => {
+                let l = item.split(",");
+                row = `${row}<div class="col-md-1" style="background-color:${l[2]}">${l[0]}-${l[1]}</div>`;
+            })
+            row = `<div class="col-md-2></div>${row}<div class="col-md-2></div>`;
+
+            for (var i = 0; i < seg.lenght; i++) {
+                countLine = `${countLine}<div class="col-md-1">${glucLevels(i)}</div>`;
+            }
+            countLine = `<div class="col-md-2>${countLine}<div class="col-md-2>`;
+
+            for (var i = 0; i < seg.lenght; i++) {
+                let p1 = glucTotals[i] / glucCount;
+                p1 = p1*100;
+                let p = p1.split(".");
+                let p2 = "";
+                if ( p.length > 0 )
+                {
+                    p2 = p[0];
+                }
+                else p2 = p1;
+
+                if ( p2.length > 3 )
+                    p2 = p2.substr(0,3);
+                p2 = `${p2}%`
+                percLine = `${percLine}<div class="col-md-1">${p2}</div>`
+                sumLine = `${sumLine}<div class="col-md-1">${sumGluc(i)}</div>`
+            }
+            percLine = `<div class="col-md-2>${percLine}<div class="col-md-2>`;
+            sumLine = `<div class="col-md-2>${sumLine}<div class="col-md-2>`;
+        }
+
+        html = `
+        <div class="row">
+            <div class="col-md-12">
+                <p class="text-info text-center">${glucCount} Mediciones Glucogeno</p>
+            </div>
+        </div>
+        <div class="row">
+            ${row}
+        </div>
+        <div class="row">
+            ${countLine}
+        </div>
+        <div class="row">
+            ${percLine}
+        </div>
+        <div class="row">
+            ${sumLine}
+        </div>`;
+
+        console.log("row",row);
+        console.log("coutnLine",countLine);
+        console.log("percLine",percLine);
+        console.log("sumLine".sumLine);
+
+        console.log("totals",html);
+        localStorage.setItem("row",row);
+        localStorage.setItem("coutnLine",countLine);
+        localStorage.setItem("percLine",percLine);
+        localStorage.setItem("sumLine",sumLine);
+        localStorage.setItem("totales",html);
+        return html;
+    }
+
+    function renderMaster() {
+        let recType = "";
+        let classText = "";
+        glucLevels = [0, 0, 0, 0, 0, 0, 0, 0];
+        let countGluc = 0;
+        let icon = "";
+        let iconColor = "";
+
+        if (master.lenght < 1)
+            return;
+
+
+
+        //hideDiv("DIVfechaHora");
+        //hideDiv("DIVrecType");
+        showDiv("content");
+
+        let row = "";
+        if (master.length > 0) {
+
+            let master2;
+            if ( filterRT != "" )
+            {
+                master2 = master.filter(x=>x[9]=filterRT);
+                master2 =  sortArray(master2, 3);
+            }
+            else 
+                master2 =  sortArray(master, 3);
+
+            let style = "";
+            row = `
+                <div class="row">
+                    <div class="col-md-2 big-font">
+                        Glucose Min:
+                    </div>
+                    <div class="col-md-2 big-font">
+                    </div>
+                    <div class="col-md-2 big-font">
+                        Glucose Max:
+                    </div>
+                    <div class="col-md-2 big-font">
+                    </div>
+                    <div class="col-md-4 big-font">
+                        <button type="button"  class="btn btn-secondary btn-block" onclick="closeedit()">Close</button>
+                    </div>
+                </div>
+
+            <div class="row">
+            <div class="col-md-1"></div>
+            <div class="col-md-1"></div>
+            <div class="col-md-3">Fecha</div>
+            <div class="col-md-7">Data</div>
+            </div>
+            `;
+
+
+            //0     1    2          3        4      5   6   7   8   9           10      11      12
+            //ROW	ID	INACTIVE	DAYS	MINUTES	Y	M	D	DOW	REC_TYPE	FECHA	HORA	DATA
+            //                                          X   X  X    X     
+
+            let divRecords = "";
+            //console.log("master".master);
+            //console.log("Detail",detail);
+
+
+            for (var i = 0; i < master2.length; i++) {
+                recType = master[i][9].trim();
+                icon = getIcon(recType);
+
+                if ( icon == "" )
+                    continue;
+
+                if (master[i][0] == "ROW")
+                    continue;
+
+                if (recTypes == "")
+                    continue;
+
+                iconColor = getColor(recType);
+                let iconTag = `<span style="font-size: 40px; color: ${iconColor};"><i class="${icon}"></i></span>`;
+                //todo: build placeholder for details
+                divRecords = master2[i][12];
+                if (",DRUG,FOOD,EXE".indexOf(recType) > 0) {
+                    divRecords = buildRecords(recType, master2[i][1], master2[i][12]);
+                    if (divRecords == "" && recType == "FOOD ")
+                        divRecords = master2[i][12];
+                }
+                console.log(i, recType, divRecords);
+                style = "";
+                if (recType == "GLUC") {
+                    countGluc++;
+                    let value = master2[i][12];
+                    //todo: apram,etrize these values
+                    if (value < 60) {
+                        style = `style="background-color:blueviolet;"`;
+                        glucLevels[0]++;
+                    }
+                    else if (value < 90) {
+                        style = `style="background-color:forestgreen;"`;
+                        glucLevels[1]++;
+                    }
+                    else if (value < 100) {
+                        style = `style="background-color:green;"`;
+                        glucLevels[2]++;
+                    }
+                    else if (value < 120) {
+                        style = `style="background-color:yellow;"`;
+                        glucLevels[3]++;
+                    }
+                    else if (value < 140) {
+                        style = `style="background-color:red;"`;
+                        glucLevels[4]++
+                    }
+                    else if (value < 160) {
+                        style = `style="background-color:slateblue;"`;
+                        glucLevels[5]++;
+                    }
+                    else if (value < 180) {
+                        style = `style="background-color:navy;"`;
+                        glucLevels[6]++;
+                    }
+                    else if (value < 300) {
+                        style = `style="background-color:darkmagenta;"`;
+                        glucLevels[7]++;
+                    }
+
+                }
+                row = `${row}
+            <div class="row row-fat">
+                <div class="col-md-1">
+                    ${iconTag}
+                </div>
+                <div class="col-md-1">
+                    ${days[master2[i][8] + 1]} 
+                </div>
+                <div class="col-md-3">
+                  ${months[master2[i][6]]}-${master2[i][7]} ${getHM(master2[i][11])}
+                </div>
+                <div id="data${master2[i][1]}" class="col-md-7" ${style}>
+                    ${divRecords}
+                </div>
+            </div>`;
+            }
+        }
+        let glucTotals = `
+        <div class="row"><hr></div>
+        <div class="row">
+    <div class="col-md-12">
+        <p class="text-info text-center">
+            ${countGluc} Mediciones de Glucogeno
+        </p>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-2">
+    </div>
+    <div class="col-md-1" style="background-color:blueviolet; color:white;">
+        0-59
+    </div>
+    <div class="col-md-1" style="background-color:forestgreen; color:white;">
+        60-89
+    </div>
+    <div class="col-md-1" style="background-color:green; color:white;">
+        90-99
+    </div>
+    <div class="col-md-1" style="background-color:yellow; color:white;">
+        100-119
+    </div>
+    <div class="col-md-1" style="background-color:red; color:white;">
+        120-139
+    </div>
+    <div class="col-md-1" style="background-color:slateblue; color:white;">
+        140-159
+    </div>
+    <div class="col-md-1" style="background-color:navy; color:white;">
+        160-179
+    </div>
+    <div class="col-md-1" style="background-color:darkmagenta; color:white;">
+        >180
+    </div>
+    <div class="col-md-2">
+    </div>
+
+</div>
+<div class="row">
+    <div class="col-md-2">
+    </div>
+    <div class="col-md-1">
+        ${glucLevels[0]}
+    </div>
+    <div class="col-md-1">
+        ${glucLevels[1]}
+    </div>
+    <div class="col-md-1">
+        ${glucLevels[2]}
+    </div>
+    <div class="col-md-1">
+        ${glucLevels[3]}
+    </div>
+    <div class="col-md-1">
+        ${glucLevels[4]}
+    </div>
+    <div class="col-md-1">
+        ${glucLevels[5]}
+    </div>
+    <div class="col-md-1">
+        ${glucLevels[6]}
+    </div>
+    <div class="col-md-1">
+        ${glucLevels[7]}
+    </div>
+    <div class="col-md-2">
+    </div>`;
+        //writeInnerHtml("result",glucTotals);
+        row = `${row}`;
+        //let totals2 = getTotals(glucTotals);
+
+        writeInnerHtml("title",glucTotals);
+
+        writeInnerHtml("content", row);
+
+    }
+
+    function renderDrugItems(div = "rows") {
 
         let row = "";
         if (records.length > 0) {
@@ -173,11 +638,11 @@
             </div>`;
             }
         }
-        writeInnerHtml("rows", row);
+        writeInnerHtml(div, row);
     }
 
 
-    function renderExeItems() {
+    function renderExeItems(div = "rows") {
         let row = "";
         if (records.length > 0) {
 
@@ -209,7 +674,7 @@
             </div>`;
             }
         }
-        writeInnerHtml("rows", row);
+        writeInnerHtml(div, row);
     }
 
 
@@ -282,8 +747,7 @@
         }
     }
 
-    function initializeFormRecType()
-    {
+    function initializeFormRecType() {
         records = [];
         if (recType == "FOOD") {
             renderFoodItems();
@@ -334,13 +798,12 @@
 
     function processData(recType, data) {
         console.log(`processData() ${recType}`)
-        console.log("data:",data);
+        console.log("data:", data);
         initializeFormRecType();
         Data.update("REC_TYPE", recType);
 
-        if ( response.showModal )
-        {
-            writeInnerHtml("modalBody",response.messages);
+        if (response.showModal) {
+            writeInnerHtml("modalBody", response.messages);
             showDiv("modalPopUp");
         }
 
@@ -361,15 +824,15 @@
     function onBlurField(id, value) {
         console.log(`onBlurField() ${id} ${value}`);
         Data.update(id, value);
-        
+
     }
 
-    function processResponSubmitForm(json)
-    {
+    function processResponSubmitForm(json) {
         let msg = "Respuesta recibida del servidor.";
+        hideDiv("spinner");
         showMessage(msg);
         response = JSON.parse(json);
-        console.log("Response received from Server. processResponSubmitForm():",response);
+        console.log("Response received from Server. processResponSubmitForm():", response);
         if (response.result == 200) {
             for (var i = 0; i < response.html.length; i++) {
                 writeInnerHtml(response.html[i].key, response.html[i].value)
@@ -380,11 +843,10 @@
                 msg = `${msg}<p class="text-info>${response.messages[i]}</p></br>`;
             }
             //writeInnerHtml("result", msg);
-            if ( msg == "" && response.messages.lenght > 0)
-            {
+            if (msg == "" && response.messages.lenght > 0) {
                 msg = response.messages[0];
             }
-            console.log("messaage received:",msg);
+            console.log("messaage received:", msg);
             showMessage(msg);
             newRecord();
         }
@@ -396,37 +858,36 @@
 
             let table = `<table>${row}</table>`;
             writeInnerHtml("error", table);
-        }        
+        }
     }
 
     function changeButtonText(btn, text) {
-            let changed = false;
-            let currentText = document.querySelector(`#${btn}`).innerHTML;
-            if (currentText.toLowerCase().indexOf(text.toLowerCase()) < 0) {
-                currentText = `${text} ${currentText}`;
-                document.querySelector(`#${btn}`).innerHTML = currentText;
-                changed = true;
-            }
-            return changed;
+        let changed = false;
+        let currentText = document.querySelector(`#${btn}`).innerHTML;
+        if (currentText.toLowerCase().indexOf(text.toLowerCase()) < 0) {
+            currentText = `${text} ${currentText}`;
+            document.querySelector(`#${btn}`).innerHTML = currentText;
+            changed = true;
         }
+        return changed;
+    }
 
 
     function processForm() {
         console.log("processForm()");
-        if ( !confirming )
-        {
+        if (!confirming) {
             //changeButtonText("submitMenu","Confirm ");
-            writeInnerHtml("btnSubmit","Confirmar");
+            writeInnerHtml("btnSubmit", "Confirmar");
             confirming = true;
             return;
         }
-        else
-        {
-            writeInnerHtml("btnSubmit","Guardar");
+        else {
+            writeInnerHtml("btnSubmit", "Guardar");
             confirming = false;
         }
         if (document.forms["myForm"].checkValidity()) {
             disableButtons(true);
+            showDiv("spinner");
             showMessage("Enviando datos al Servidor...");
             hideDiv("content");
             hideDiv("rows");
@@ -446,8 +907,7 @@
                 r.itemId = records[i].itemId;
                 if (recType == "FOOD" || recType == "DRUG")
                     r.cant = records[i].cant;
-                else if ( recType == "EXE")
-                {
+                else if (recType == "EXE") {
                     r.cant = records[i].cant;
                     r.time = records[i].time;
                 }
@@ -456,19 +916,72 @@
             }
 
 
-            console.log("Data",Data);
+            console.log("Data", Data);
             newRecord();
 
-             google.script.run.withFailureHandler(failureHandler)
+            google.script.run.withFailureHandler(failureHandler)
                 .withSuccessHandler(processResponSubmitForm)
                 .processForm(Data, recordsBase);
         }
         else {
+
             showError("Some fields are required");
 
         }
 
     }
+
+
+    function processResponseEdit(json) {
+        response = JSON.parse(json);
+
+        console.log("Response received from Server. processResponseEdit():", response);
+        if (response.result == 200) {
+            for (var i = 0; i < response.html.length; i++) {
+                writeInnerHtml(response.html[i].key, response.html[i].value)
+                localStorage.setItem(`${response.html[i].key}_${recType}`, response.html[i].value);
+            }
+
+            let msg = "";
+            for (var i = 0; i < response.messages.lenght; i++) {
+                msg = `${msg}<p class="text-info>${response.messages[i]}</p></br>`;
+            }
+            writeInnerHtml("result", msg);
+            //todo: show only if form modified
+            showDiv("submitArea");
+            master = response.master;
+            detail = response.detail;
+            renderMaster();
+        }
+        else {
+            let row = `<tr><td>Server Error</td><td>${response.result}</td></tr>`;
+            for (var i = 0; i < response.error.length; i++) {
+                row = `${row}<tr><td>${response.error[i].key}</td><td>${response.error[i].value}</td></tr>`;
+            }
+
+            let table = `<table>${row}</table>`;
+            writeInnerHtml("error", table);
+        }
+        hideDiv("spinner");
+    }
+
+
+
+    function edit() {
+        editMode = true;
+        showDiv("spinner");
+        fecha = getValue("FECHA");
+        console.log("edit() fecha:", fecha);
+        recTypes = getHtmlSelectFiltered(Items.arr, "RT2", "Todos", true);
+
+
+        dt = getDateFromYMD(fecha);
+        google.script.run.withFailureHandler(failureHandler)
+            .withSuccessHandler(processResponseEdit)
+            .edit(dt.getFullYear());
+    }
+
+
     function processFoodItemsRequest(json) {
         FoodItems.arr = JSON.parse(json);
     }
@@ -483,23 +996,23 @@
 
 
     function processDrugItemsRequest(json) {
+        hideDiv("spinner");
         DrugItems.arr = JSON.parse(json);
         let selectDrugType = getSelect("DrugItems", DrugItems.arr, 0, 1, "Seleccione Droga", "", true, 1);
         writeInnerHtml("DRUG_ITEMS", selectDrugType);
     }
 
-    function processRTChange(json)
-    {
+    function processRTChange(json) {
         processResponse(json);
     }
 
     function processResponse(json) {
         response = JSON.parse(json);
-        console.log("Response received from Server. processResponse():",response);
+        console.log("Response received from Server. processResponse():", response);
         if (response.result == 200) {
             for (var i = 0; i < response.html.length; i++) {
                 writeInnerHtml(response.html[i].key, response.html[i].value)
-                localStorage.setItem(`${response.html[i].key}_${recType}`,response.html[i].value);
+                localStorage.setItem(`${response.html[i].key}_${recType}`, response.html[i].value);
             }
 
             let msg = "";
@@ -542,14 +1055,14 @@
     }
 
 
-    function cancelSubmit()
-    {
+    function cancelSubmit() {
         console.log("cancelSubmit()");
         newRecord();
     }
 
-    function newRecord(){
+    function newRecord() {
         console.log("newRecord");
+        writeInnerHtml("title","PrecKee. Personal Record Keeper");
         formChanged = false;
         confirming = false;
         refreshDate();
@@ -568,6 +1081,8 @@
     }
 
     function initialize() {
+        showMessage("© 2021 Cesar Castaño");
+        showDiv("spinner");
         console.log("initialize");
         htmlRecType = getHtmlSelectFiltered(Items.arr, "RT", "Seleccione Registro", true);
         newRecord();
@@ -596,6 +1111,7 @@
 
     //************************************ event handlers ***********************************
     function failureHandler(error) {
+        hideDiv("spinner");
         writeInnerHtml("error", error);
     }
 
@@ -617,8 +1133,7 @@
 
 
 
-    function clearRows()
-    {
+    function clearRows() {
         records = [];
         clearDiv("rows");
         showDiv("rows");
@@ -629,9 +1144,17 @@
     }
 
     function onchange_RT(e) {
-        console.log("onchange_RT",e);
-        if ( e == "")
+        console.log("onchange_RT", e);
+        // if ( editMode )
+        // {
+        //     filterRT = e;
+        //     renderMaster();
+        //     return;
+        // }
+        if (e == "")
             return;
+
+        
 
         Data.update("REC_TYPE", e);
         clearDiv("result");
@@ -640,7 +1163,7 @@
         hideDiv("DIVrecType")
         showDiv("content");
         clearRows();
-        
+
 
 
         recType = e;
@@ -650,8 +1173,8 @@
         writeInnerHtml("rows", "");
 
         html = localStorage.getItem(`content_${recType}`);
-        console.log("html from local storage",html);
-        if ( html == undefined )
+        console.log("html from local storage", html);
+        if (html == undefined)
             html = "";
 
         if (html.length == 0) {
@@ -666,6 +1189,7 @@
         else {
             writeInnerHtml("content", html);
             initializeFormRecType();
+            showDiv("submitArea");
         }
 
     }
@@ -684,6 +1208,7 @@
         let selectFoodItems = getHtmlSelectFiltered(FoodItems.arr, foodCategory, "Seleccione Alimento", "", "FoodItems");
         writeInnerHtml("FOOD_ITEMS", selectFoodItems);
     }
+
 
 
     function onchange_DrugItems(e) {
@@ -747,7 +1272,7 @@
     }
 
 
-  
+
 
     function onSuccess(html) {
         refreshDate();

@@ -260,7 +260,7 @@ export class Service {
                     grid = range.getValues();
                 }
 
-                SysLog.log(1,`Processing ${i}`,"importBatchLegacy()",JSON.stringify(c));
+                SysLog.log(1, `Processing ${i}`, "importBatchLegacy()", JSON.stringify(c));
                 recType = c[1].toUpperCase();
                 fecha = Utils.getYMD(dt);
                 days = Utils.getDays(dt);
@@ -444,25 +444,39 @@ export class Service {
         fpi.totalRows = rangeData.getLastRow();
         gridSource = rangeData.getValues();
 
+        //set first column format to plain text
+        var column = sheet.getRange("A2:A");
+        column.setNumberFormat("@");
+
+
         let data2 = new KVPCollection();
         data2.initialize("ROW,ID,INACTIVE,DAYS,MINUTES,Y,M,D,DOW,REC_TYPE,FECHA,HORA,DATA");
 
         let id = this.getId("Id");
-        data2.update("REC_TYPE","GLUC")
+        data2.update("REC_TYPE", "GLUC")
 
         SysLog.log(0, "grid", "importLegacyGLUC()", `grid length: ${gridSource.length} lastColumn:${lastColumn}`);
-        for (i = 1; i < gridSource.length; i++) {
+        for (i = 1; i <= gridSource.length; i++) {
             try {
 
                 c = gridSource[i];
                 if (c[1] != "2")
                     continue;
 
-                dt = c[0];
-                if ( !Utils.isDate(dt))
-                    dt = Utils.getDateYMDFromDMY(dt.toString(),"/");
+                fecha = c[0];
+                let p = fecha.split(" ");
+                if (p.length > 0)
+                    fecha = p[0];
+                hora = "00:00";
+                if (p.length > 1)
+                    hora = p[1];
+                dt = Utils.getDateFromDMY(fecha, "/");
 
-                SysLog.log(1,`Processing ${i}`,"importBatchGLUC()",JSON.stringify(c));
+
+                //if (!Utils.isDate(dt))
+                //    dt = Utils.getDateYMDFromDMY(dt.toString(), "/");
+
+                SysLog.log(1, `Processing ${i}`, "importBatchGLUC()", JSON.stringify(c));
 
 
                 value = c[4];
@@ -497,14 +511,7 @@ export class Service {
                 M = dt.getMonth() + 1;
                 D = dt.getDate();
                 DOW = dt.getDay();
-                fecha = Utils.getYMD(dt);
-                if ( fecha == "" )
-                {
-                    fecha = Utils.getDateYMDFromDMY(dt.toString());
-                    hora = Utils.getHourFromDMY(dt.toString());
-                }
-                else
-                    hora = Utils.getHM(dt);
+
                 minutes = Utils.getMinutes(hora);
 
                 data2.update("D", D.toString());
@@ -516,7 +523,7 @@ export class Service {
                 data2.update("DAYS", days.toString());
                 data2.update("MINUTES", minutes.toString());
                 data2.update("DATA", value);
-                data2.update("FECHA", fecha);
+                data2.update("FECHA", `${Utils.getDateYMD(dt)}`);
                 data2.update("HORA", hora);
                 let v = data2.getColValues().split(",");
                 sheet.appendRow(v);
@@ -538,23 +545,23 @@ export class Service {
 
         id--;
         this.updateId("Id", id);
-        SysLog.log(0, "MOVING SOURCE FILE");
-        try {
-            Utils.moveFiles(ssFile.getId(), this.folder);
-            let movedFile = DriveApp.getFileById(fpi.fi.id);
-            fi = new FileInfo();
-            fi.setFileInfo(movedFile);
-            fpi.setFileInfo(fi);
-            fpi.id = id;
-        }
-        catch (ex) {
-            SysLog.logException(ex, `importBatchGLUC() Moving files`, JSON.stringify(fpi), JSON.stringify(fi));
-        }
+        // SysLog.log(0, "MOVING SOURCE FILE");
+        // try {
+        //     Utils.moveFiles(ssFile.getId(), this.folder);
+        //     let movedFile = DriveApp.getFileById(fpi.fi.id);
+        //     fi = new FileInfo();
+        //     fi.setFileInfo(movedFile);
+        //     fpi.setFileInfo(fi);
+        //     fpi.id = id;
+        // }
+        // catch (ex) {
+        //     SysLog.logException(ex, `importBatchGLUC() Moving files`, JSON.stringify(fpi), JSON.stringify(fi));
+        // }
         Logger.log("RETURNING...");
         return fpi;
     }
 
-    renderBatchResults(fpi: FileProcessItem):string {
+    renderBatchResults(fpi: FileProcessItem): string {
         let html = `<table>
         <tr>
             <td>File Name:</td>
@@ -604,23 +611,21 @@ export class Service {
         let recType = data2.get("REC_TYPE");
         let fpi = new FileProcessItem();
         let url = "";
-        if (recType == "GLUC")
-        {
+        if (recType == "GLUC") {
             url = data2.get("URL");
-            if ( url != "" )
-            {
+            if (url != "") {
                 fpi = this.importBatchGluc(url);
-                response.addHtml("modalBody",this.renderBatchResults(fpi));
+                SysLog.log(9999,"fpi","service.ts 618 processFor,()",JSON.stringify(fpi));
+                response.addHtml("modalBody", this.renderBatchResults(fpi));
                 return response;
             }
         }
-        else if (recType == "LEG")
-        {
+        else if (recType == "LEG") {
             url = data2.get("URL");
-            if ( url != "" )
-            {
+            if (url != "") {
                 fpi = this.importBatchLegacy(url);
-                response.addHtml("modalBody",this.renderBatchResults(fpi));
+                SysLog.log(9999,"fpi","service.ts 627 processFor,()",JSON.stringify(fpi));
+                response.addHtml("modalBody", this.renderBatchResults(fpi));
                 return response;
             }
         }
@@ -677,14 +682,13 @@ export class Service {
 
             for (var i = 0; i < records.length; i++) {
                 let row;
-                
-                if ( recType == "EXE")
-                {
+
+                if (recType == "EXE") {
                     let seconds = Utils.getSeconds2(records[i].time);
-                    row  = [lastRow, id, "", records[i].itemId, records[i].cant,seconds,records[i].time];
+                    row = [lastRow, id, "", records[i].itemId, records[i].cant, seconds, records[i].time];
                 }
-                else 
-                    row  = [lastRow, id, "", records[i].itemId, records[i].cant];
+                else
+                    row = [lastRow, id, "", records[i].itemId, records[i].cant];
 
                 sheet.appendRow(row);
                 lastRow++;
@@ -787,6 +791,28 @@ export class Service {
         }
         this.updateId("Id", id);
         return id;
+    }
+
+    edit(year) {
+        let response = new GSResponse();
+        let fileName = `${year}_data`;
+        let ss = Utils.openSpreadSheet(fileName, this.folder);
+        let master;
+        let detail;
+        if (ss != null) {
+            let sort = [{ column: 10, ascending: false }, {
+                column: 11
+                , ascending: true
+            }];
+            response.master = Utils.getData2(ss, "Master", sort);
+            response.detail = Utils.getData2(ss, "Detail");
+        }
+        else {
+            response.domainResult = -1;
+            response.addError("error", `File ${fileName} not found`, 404);
+        }
+
+        return response;
     }
 
 }

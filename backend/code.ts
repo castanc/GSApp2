@@ -5,18 +5,18 @@ import { SysLog } from "./SysLog";
 import { Utils } from "./Utils";
 
 
-function testGetLogLevel()
-{
-    let sv = new Service();
-    sv.getLogLevel("Id");
-}
+
+
+
+
 function testImportBatchGLUC()
 {
-    let url = "https://docs.google.com/spreadsheets/d/18TRvXTSThhQHQ9KzhHC8_aTttC9Uc08TOCx1Zf4gfqI/edit#gid=0";
+    let url = "https://docs.google.com/spreadsheets/d/1OCGqqg9grfL462qSsk1hULrX6zDcrFVHSqiojLpW6zQ/edit#gid=0";
     try
     {
     let sv = new Service();
     let result = sv.importBatchGluc(url);
+    SysLog.log(9999,"fpi","testImportBatchGLUC()",JSON.stringify(result));
     }
     catch(ex)
     {
@@ -24,6 +24,8 @@ function testImportBatchGLUC()
     }
 
 }
+
+
 
 function testImportLegacy()
 {
@@ -44,6 +46,21 @@ function testGetId()
     let result = sv.getId("Id");
 }
 
+
+function edit(year)
+{
+    
+    let sv = new Service();
+    let response = new GSResponse();
+    try{
+        response = sv.edit(year);
+    }
+    catch(ex)
+    {
+        handleException(ex,"edit()", year.toString());
+    }
+    return JSON.stringify(response);
+}
 
 function getDataDeclarations(names):string
 {
@@ -173,6 +190,7 @@ function processForm(Data, records, colSep = "\t", lineSep = "\bn") {
         result.messages.push(ex.stack);
         result.showModal = false;
     }
+    SysLog.log(9999,"esponse","processFOrm()",JSON.stringify(result));
     return JSON.stringify(result);
 }
 

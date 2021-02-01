@@ -9,6 +9,9 @@ export class GSResponse {
     html: Array<KeyValuePair<string,string>> = new Array<KeyValuePair<string,string>>();
     data: Array<KeyValuePair<string,string>> = new Array<KeyValuePair<string,string>>();
     error: Array<KeyValuePair<string,string>> = new Array<KeyValuePair<string,string>>();
+    objects: Array<KeyValuePair<string,any>> = new Array<KeyValuePair<string,any>>();
+    master: [[]];
+    detail: [[]];
     messages = new Array<string>();
     showModal = false;
     

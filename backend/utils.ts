@@ -28,6 +28,14 @@ export class Utils {
         return Utilities.formatDate(dt, Session.getScriptTimeZone(), 'yyyy-MM-dd HH-mm-ss');
     }
 
+    static getDateYMD(dt=null)
+    {
+        if ( dt == null )
+            dt = new Date();
+
+            return Utilities.formatDate(dt, Session.getScriptTimeZone(), 'yyyy-MM-dd');
+    }
+
     //https://stackoverflow.com/questions/1353684/detecting-an-invalid-date-date-instance-in-javascript
 
     static isDate(dt)
@@ -117,18 +125,23 @@ export class Utils {
     }
 
 
-    static openSpreadSheet(ssName) {
+    static openSpreadSheet(ssName, folder=null) {
         let ss = null;
         try {
             if (ssName.toLowerCase().indexOf("http") >= 0) {
                 ss = SpreadsheetApp.openByUrl(ssName);
             }
             else {
-                let fileInfos = Utils.getFilesByName(ssName);
-                if (fileInfos.length > 0)
-                    ss = SpreadsheetApp.openById(fileInfos[0].id);
-                else
-                    ss = SpreadsheetApp.openById(ssName);
+                if ( folder == null )
+                    folder = DriveApp.getRootFolder();
+
+                let files = folder.getFilesByName(ssName);
+                let file = null;
+                if ( files.hasNext())
+                    file = files.next();
+
+                if ( file != null )
+                    ss = SpreadsheetApp.openById(file.getId());
             }
         }
         catch (ex) {
@@ -433,7 +446,7 @@ export class Utils {
         return sheet.getDataRange();
     }
 
-    static getData(ss, sheetName: string = ""): [][] {
+    static getData(ss, sheetName: string = "", sort = null ): [][] {
         let sheet;
         if (sheetName == "")
             sheet = ss.getActiveSheet();
@@ -441,6 +454,32 @@ export class Utils {
             sheet = ss.getSheetByName(sheetName);
 
         var rangeData = sheet.getDataRange();
+        if ( sort != null )
+        {
+            rangeData.sort(sort);
+        }
+        //var lastColumn = rangeData.getLastColumn();
+        //var lastRow = rangeData.getLastRow();
+        let grid = rangeData.getValues();
+        return grid;
+    }
+
+    static getData2(ss, sheetName: string = "", sort = null ): [[]] {
+        let sheet;
+        if (sheetName == "")
+            sheet = ss.getActiveSheet();
+        else
+            sheet = ss.getSheetByName(sheetName);
+
+        var rangeData = sheet.getDataRange();
+        // if ( sort != null )
+        // {
+        //     let bs = rangeData.getValues();
+        //     rangeData = rangeData.sort(sort);
+        //     let as = rangeData.getValues();
+        //     SysLog.log(0,"before sort 4,5","getData(2)",JSON.stringify(bs));
+        //     SysLog.log(0,"after sort","getData(2)",JSON.stringify(as));
+        // }
         //var lastColumn = rangeData.getLastColumn();
         //var lastRow = rangeData.getLastRow();
         let grid = rangeData.getValues();
