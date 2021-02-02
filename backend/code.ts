@@ -170,7 +170,6 @@ function processForm(Data, records, colSep = "\t", lineSep = "\bn") {
     let html = "";
     let result = new GSResponse();
     try {
-        SysLog.level = 1;
         result = sv.processForm(Data, records,colSep,lineSep);
         if ( result.id >= 0 )
         {

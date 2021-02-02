@@ -75,6 +75,13 @@
     }
 
 
+    function getHMFromMinutes(min)
+    {
+        let h = Math.trunc(min / 60);
+        let m = min/60 - h;
+        m = Math.trunc(m * 60);
+        return `${h}:${m}`;
+    }
     function getHM(dt = null) {
         let sHour = "";
         if (dt == null)

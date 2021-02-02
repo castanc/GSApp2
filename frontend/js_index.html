@@ -30,6 +30,7 @@
     let glucLevels = [0, 0, 0, 0, 0, 0, 0, 0, 0];
     let minG = 0;
     let maxG = 999;
+    let sortDescending = false;
 
 
 
@@ -237,59 +238,108 @@
             return 0;
         }
         else {
-            return (a[3] > b[3]) ? -1 : 1;
+            if (sortDescending)
+                return (a[3] > b[3]) ? -1 : 1;
+            else
+                return (a[3] < b[3]) ? -1 : 1;
         }
     }
 
-    function buildRecords(recType, id, defValue = "") {
+    function buildRecords0(recType, id, defValue = "") {
         result = defValue;
         //let arr = master.filter(x=>x[1]==id);
         // detail.foreach(item => {
         //     if ( item[1]==id)
         //         arr.push(item);
         // })
+
+        if (recType == "FOOD") {
+            let mt = Items.arr.filter(x => x[0] = "MT" && x[1] == defValue);
+            if (mt.lenght > 0)
+                result = `${mt[2].substr(0, 4)}:`
+            //console.log("mealType:",mt,result);
+        }
+
         let arr = detail.filter(x => x[1] == id);
+        let ri;
         if (arr.length > 0) {
-            console.log("buildRecords()", recType, id, defValue, arr, arr.length);
-            if (recType == "FOOD") {
-                let mt = Items.arr.filter(x => x[0] = "MT" && x[1] == defValue);
-                if (mt.lenght > 0)
-                    result = `${mt[2].substr(0, 4)}:`
-            }
 
             if (recType == "FOOD") {
                 for (var i = 0; i < arr.length; i++) {
-                    let ri = FoodItems.arr.filter(x => x[1] == arr[i][3])
-                    console.log("FOOD ri", ri);
+                    ri = FoodItems.arr.filter(x => x[1] == arr[i][3])
                     if (ri.lenght > 0) {
-                        result = `${result} ${ri[2]},`;
+                        result = `${result} ${ri[0]},`;
                     }
                 }
             }
             else if (recType == "DRUG") {
                 for (var i = 0; i < arr.length; i++) {
-                    let ri = DrugItems.arr.filter(x => x[1] == arr[i][1])
-                    console.log("FOOD ri", ri);
+                    ri = DrugItems.arr.filter(x => x[1] == arr[i][1])
                     if (ri.lenght > 0) {
-                        result = `${result} ${ri[2]},`;
+                        result = `${result} ${ri[1].toUpperCase().substr(0, 2)},`;
                     }
                 }
             }
             else if (recType == "EXE") {
 
                 for (var i = 0; i < arr.length; i++) {
-                    let ri = ExeItems.arr.filter(x => x[1] == arr[i][1])
-                    console.log("FOOD ri", ri);
+                    ri = ExeItems.arr.filter(x => x[1] == arr[i][1])
                     if (ri.lenght > 0) {
-                        result = `${result} ${ri[2]} ${r[4]} ${r[5]},`;
+                        result = `${result} ${ri[1]} ${ri[4]} ${ri[5]},`;
                     }
                 }
             }
-
+            if (ri.length > 0) {
+                console.log("*********************************************************");
+                console.log("buildRecords()", recType, id, defValue, "arr:", arr, arr.length);
+                console.log("ri", recType, id, "ri:", ri, "result:", result);
+            }
         }
         return result;
     }
 
+
+    function buildRecords(recType, id, defValue = "") {
+        if (",FOOD,EXE,DRUG,".indexOf(recType) < 0)
+            return defValue;
+
+        result = defValue;
+        let ri;
+        if (recType == "FOOD") {
+            let mt = Items.arr.filter(x => x[0] = "MT" && x[1] == defValue);
+            if (mt.length > 0)
+            {
+                console.log("meal type found: result:", mt);
+                result = `${mt[0][2]}:`
+            }
+        }
+
+        let arr = detail.filter(x => x[1] == id);
+        arr.forEach(item => {
+            if (recType == "FOOD") {
+                ri = FoodItems.arr.filter(x => x[1] == item[3])
+                ri.forEach(detail=>{
+                    result = `${result} ${detail[0]},`;
+                })
+                    
+            }
+            else if (recType == "DRUG") {
+                ri = DrugItems.arr.filter(x => x[0] == item[3])
+                ri.forEach(detail=>{
+                    result = `${result} ${detail[1].toUpperCase()},`;
+                })
+                    
+            }
+            else if (recType == "EXE") {
+                ri = ExeItems.arr.filter(x => x[0] == item[3])
+                ri.forEach(detail => {
+                    result = `${result} ${detail[1]} ${item[4]} ${item[5]},`;
+                })
+                   
+            }
+        })
+        return result;
+    }
 
     function sortArray(arr, col, desc = true) {
         return arr.sort(sortFunction);
@@ -321,7 +371,7 @@
         let sumLine = "";
         let countLine = "";
         let seg = glucLevelsText.split(";");
-        
+
         if (glucCount > 0) {
             seg.forEach(item => {
                 let l = item.split(",");
@@ -336,17 +386,16 @@
 
             for (var i = 0; i < seg.lenght; i++) {
                 let p1 = glucTotals[i] / glucCount;
-                p1 = p1*100;
+                p1 = p1 * 100;
                 let p = p1.split(".");
                 let p2 = "";
-                if ( p.length > 0 )
-                {
+                if (p.length > 0) {
                     p2 = p[0];
                 }
                 else p2 = p1;
 
-                if ( p2.length > 3 )
-                    p2 = p2.substr(0,3);
+                if (p2.length > 3)
+                    p2 = p2.substr(0, 3);
                 p2 = `${p2}%`
                 percLine = `${percLine}<div class="col-md-1">${p2}</div>`
                 sumLine = `${sumLine}<div class="col-md-1">${sumGluc(i)}</div>`
@@ -374,20 +423,42 @@
             ${sumLine}
         </div>`;
 
-        console.log("row",row);
-        console.log("coutnLine",countLine);
-        console.log("percLine",percLine);
+        console.log("row", row);
+        console.log("coutnLine", countLine);
+        console.log("percLine", percLine);
         console.log("sumLine".sumLine);
 
-        console.log("totals",html);
-        localStorage.setItem("row",row);
-        localStorage.setItem("coutnLine",countLine);
-        localStorage.setItem("percLine",percLine);
-        localStorage.setItem("sumLine",sumLine);
-        localStorage.setItem("totales",html);
+        console.log("totals", html);
+        localStorage.setItem("row", row);
+        localStorage.setItem("coutnLine", countLine);
+        localStorage.setItem("percLine", percLine);
+        localStorage.setItem("sumLine", sumLine);
+        localStorage.setItem("totales", html);
         return html;
     }
 
+    function buildGlucRange() {
+        let glucRange = `<div class="row">
+    <div class="col-md-6 big-font">
+        Glucose Min:
+    </div>
+    <div class="col-md-6 big-font">
+        <input type="number" id="GLUC_MIN" name="GLUC_MIN" class="form-control"></input>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-6 big-font">
+        Glucose Max:
+    </div>
+    <div class="col-md-6 big-font">
+        <input type="number" id="GLUC_MAX" name="GLUC_MAX" class="form-control"></input>
+    </div>
+</div>
+`;
+
+        writeInnerHtml("GLUC_RANGE", glucRange);
+
+    }
     function renderMaster() {
         let recType = "";
         let classText = "";
@@ -409,73 +480,42 @@
         if (master.length > 0) {
 
             let master2;
-            if ( filterRT != "" )
-            {
-                master2 = master.filter(x=>x[9]=filterRT);
-                master2 =  sortArray(master2, 3);
+            if (filterRT != "") {
+                master2 = master.filter(x => x[9] = filterRT);
+                master2 = sortArray(master2, 3);
             }
-            else 
-                master2 =  sortArray(master, 3);
+            else
+                master2 = sortArray(master, 3);
 
+            buildGlucRange();
             let style = "";
             row = `
-                <div class="row">
-                    <div class="col-md-2 big-font">
-                        Glucose Min:
-                    </div>
-                    <div class="col-md-2 big-font">
-                    </div>
-                    <div class="col-md-2 big-font">
-                        Glucose Max:
-                    </div>
-                    <div class="col-md-2 big-font">
-                    </div>
-                    <div class="col-md-4 big-font">
-                        <button type="button"  class="btn btn-secondary btn-block" onclick="closeedit()">Close</button>
-                    </div>
-                </div>
-
+            <hr>
             <div class="row">
             <div class="col-md-1"></div>
-            <div class="col-md-1"></div>
-            <div class="col-md-3">Fecha</div>
-            <div class="col-md-7">Data</div>
+            <div class="col-md-1">Dia</div>
+            <div class="col-md-2">Fecha</div>
+            <div class="col-md-2">Hora</div>
+            <div class="col-md-6">Data</div>
             </div>
             `;
 
-
-            //0     1    2          3        4      5   6   7   8   9           10      11      12
-            //ROW	ID	INACTIVE	DAYS	MINUTES	Y	M	D	DOW	REC_TYPE	FECHA	HORA	DATA
-            //                                          X   X  X    X     
-
             let divRecords = "";
-            //console.log("master".master);
-            //console.log("Detail",detail);
-
-
             for (var i = 0; i < master2.length; i++) {
                 recType = master[i][9].trim();
                 icon = getIcon(recType);
 
-                if ( icon == "" )
-                    continue;
-
-                if (master[i][0] == "ROW")
-                    continue;
-
-                if (recTypes == "")
+                if (icon == "")
                     continue;
 
                 iconColor = getColor(recType);
                 let iconTag = `<span style="font-size: 40px; color: ${iconColor};"><i class="${icon}"></i></span>`;
                 //todo: build placeholder for details
-                divRecords = master2[i][12];
-                if (",DRUG,FOOD,EXE".indexOf(recType) > 0) {
-                    divRecords = buildRecords(recType, master2[i][1], master2[i][12]);
-                    if (divRecords == "" && recType == "FOOD ")
-                        divRecords = master2[i][12];
-                }
-                console.log(i, recType, divRecords);
+
+                divRecords = buildRecords(recType, master2[i][1], master2[i][12]);
+                if (divRecords == "" && recType == "FOOD ")
+                    divRecords = master2[i][12];
+
                 style = "";
                 if (recType == "GLUC") {
                     countGluc++;
@@ -523,10 +563,13 @@
                 <div class="col-md-1">
                     ${days[master2[i][8] + 1]} 
                 </div>
-                <div class="col-md-3">
-                  ${months[master2[i][6]]}-${master2[i][7]} ${getHM(master2[i][11])}
+                <div class="col-md-2">
+                  ${months[master2[i][6]]}-${master2[i][7]}
                 </div>
-                <div id="data${master2[i][1]}" class="col-md-7" ${style}>
+                <div class="col-md-2">
+                  ${master2[i][11]}
+                </div>
+                <div id="data${master2[i][1]}" class="col-md-6" ${style}>
                     ${divRecords}
                 </div>
             </div>`;
@@ -545,25 +588,25 @@
     <div class="col-md-2">
     </div>
     <div class="col-md-1" style="background-color:blueviolet; color:white;">
-        0-59
+        60
     </div>
     <div class="col-md-1" style="background-color:forestgreen; color:white;">
-        60-89
+        90
     </div>
     <div class="col-md-1" style="background-color:green; color:white;">
-        90-99
+        100
     </div>
     <div class="col-md-1" style="background-color:yellow; color:white;">
-        100-119
+        120
     </div>
     <div class="col-md-1" style="background-color:red; color:white;">
-        120-139
+        140
     </div>
     <div class="col-md-1" style="background-color:slateblue; color:white;">
-        140-159
+        160
     </div>
     <div class="col-md-1" style="background-color:navy; color:white;">
-        160-179
+        180
     </div>
     <div class="col-md-1" style="background-color:darkmagenta; color:white;">
         >180
@@ -605,7 +648,7 @@
         row = `${row}`;
         //let totals2 = getTotals(glucTotals);
 
-        writeInnerHtml("title",glucTotals);
+        writeInnerHtml("title", glucTotals);
 
         writeInnerHtml("content", row);
 
@@ -898,6 +941,7 @@
 
             Data.update("FECHA", getValue("FECHA"));
             Data.update("HORA", getValue("HORA"));
+            Data.update("REC_TYPE", recType);
 
             console.log("processForm()");
             console.log(Data);
@@ -1062,7 +1106,9 @@
 
     function newRecord() {
         console.log("newRecord");
-        writeInnerHtml("title","PrecKee. Personal Record Keeper");
+        clearDiv("GLUC_RANGE");
+        editMode = false;
+        writeInnerHtml("title", "PrecKee. Personal Record Keeper");
         formChanged = false;
         confirming = false;
         refreshDate();
@@ -1087,6 +1133,8 @@
         htmlRecType = getHtmlSelectFiltered(Items.arr, "RT", "Seleccione Registro", true);
         newRecord();
         showMessage("Ready");
+        console.log("items", Items.arr);
+
 
 
         setTimeout(function () {
@@ -1154,7 +1202,7 @@
         if (e == "")
             return;
 
-        
+
 
         Data.update("REC_TYPE", e);
         clearDiv("result");

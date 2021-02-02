@@ -612,8 +612,8 @@ export class Service {
         let fpi = new FileProcessItem();
         let url = "";
         if (recType == "GLUC") {
-            url = data2.get("URL");
-            if (url != "") {
+            url = data2.get("URL").trim();
+            if (url != "" && url.toLowerCase().indexOf("http")==0) {
                 fpi = this.importBatchGluc(url);
                 SysLog.log(9999,"fpi","service.ts 618 processFor,()",JSON.stringify(fpi));
                 response.addHtml("modalBody", this.renderBatchResults(fpi));
@@ -626,8 +626,12 @@ export class Service {
                 fpi = this.importBatchLegacy(url);
                 SysLog.log(9999,"fpi","service.ts 627 processFor,()",JSON.stringify(fpi));
                 response.addHtml("modalBody", this.renderBatchResults(fpi));
-                return response;
             }
+            else {
+                response.domainResult = -2;
+                response.messages.push("invalid url");
+            }
+            return response;
         }
 
 
@@ -665,6 +669,8 @@ export class Service {
 
 
         let v = data2.getColValues().split(",");
+        SysLog.log(0,"row verification v:","service.ts oprocessForm() 675",JSON.stringify(v));
+        SysLog.log(0,"data2","service.ts oprocessForm() 675",JSON.stringify(data2));
         sheet.appendRow(v);
 
         if (records != null && records.length > 0) {
@@ -797,6 +803,12 @@ export class Service {
         let response = new GSResponse();
         let fileName = `${year}_data`;
         let ss = Utils.openSpreadSheet(fileName, this.folder);
+
+         //set first column format to plain text
+         let sheet = ss.getSheetByName("Master");
+         var column = sheet.getRange("L2:L");
+         column.setNumberFormat("@");
+
         let master;
         let detail;
         if (ss != null) {
