@@ -138,19 +138,27 @@ export class Service {
             recTypes.push(rt);
         })
 
-        let glucLevelsText = `0,59,"blueviolet";60,89,"green";90,99,"yellow";100,119,"red";120,139,"slateblue";140,159,"navy";160,179,"darkmagenta";180,999,"darkblue"`;
-        let list = glucLevelsText.split(";");
-        let gl = new Array<GlucLevel>();
-        list.forEach(item=>{
-            let level = new GlucLevel(item);
-            gl.push(level);
+        // let glucLevelsText = `0,59,"blueviolet";60,89,"green";90,99,"yellow";100,119,"red";120,139,"slateblue";140,159,"navy";160,179,"darkmagenta";180,999,"darkblue"`;
+        // let list = glucLevelsText.split(";");
+        // let gl = new Array<GlucLevel>();
+        // list.forEach(item=>{
+        //     let level = new GlucLevel(item);
+        //     gl.push(level);
+        // })
+
+        items = grid.filter(x=> x[0]=="RG");
+        let glucLevels = new Array<GlucLevel>();
+        items.forEach(item=>{
+            let gl = new GlucLevel(item)
+            glucLevels.push(gl);
         })
+
 
 
 
         let js = `Items.arr = ${JSON.stringify(grid)};
         let RecTypes = ${JSON.stringify(recTypes)};
-        let GlucLevels = ${JSON.stringify(gl)};`;
+        let GlucLevels = ${JSON.stringify(glucLevels)};`;
         return js;
     }
 

@@ -31,6 +31,8 @@
     let minG = 0;
     let maxG = 999;
     let sortDescending = false;
+    let countGluc = 0;
+
 
 
 
@@ -257,7 +259,6 @@
             let mt = Items.arr.filter(x => x[0] = "MT" && x[1] == defValue);
             if (mt.lenght > 0)
                 result = `${mt[2].substr(0, 4)}:`
-            //console.log("mealType:",mt,result);
         }
 
         let arr = detail.filter(x => x[1] == id);
@@ -288,11 +289,6 @@
                         result = `${result} ${ri[1]} ${ri[4]} ${ri[5]},`;
                     }
                 }
-            }
-            if (ri.length > 0) {
-                console.log("*********************************************************");
-                console.log("buildRecords()", recType, id, defValue, "arr:", arr, arr.length);
-                console.log("ri", recType, id, "ri:", ri, "result:", result);
             }
         }
         return result;
@@ -362,78 +358,91 @@
     }
 
 
-    function getTotals(glucCount) {
-        let html = "";
-        let row = "";
-        let percLine = "";
-        let sumLine = "";
-        let countLine = "";
-        let seg = glucLevelsText.split(";");
 
-        if (glucCount > 0) {
-            seg.forEach(item => {
-                let l = item.split(",");
-                row = `${row}<div class="col-md-1" style="background-color:${l[2]}">${l[0]}-${l[1]}</div>`;
-            })
-            row = `<div class="col-md-2></div>${row}<div class="col-md-2></div>`;
+    function getGlucTotals() {
+        let totalsHtml = "";
+        let row = `<div class="row">
+            <div class="col-md-2">Rangos</div>`;
+        let style = "";
+        console.log("GlucLevels", GlucLevels);
 
-            for (var i = 0; i < seg.lenght; i++) {
-                countLine = `${countLine}<div class="col-md-1">${glucLevels(i)}</div>`;
-            }
-            countLine = `<div class="col-md-2>${countLine}<div class="col-md-2>`;
+        GlucLevels.forEach(item => {
+            style = `style="background-color:${item.backgroundColor}; color:white;"`;
+            row = `${row}
+            <div class="col-md-1" ${style}>
+                &lt${item.max + 1}
+            </div>`;
+        });
+        row = `${row}<div class="col-md-2"></div></div>
+        <div class="row">
+            <div class="col-md-2">Mediciones</div>`;
 
-            for (var i = 0; i < seg.lenght; i++) {
-                let p1 = glucTotals[i] / glucCount;
-                p1 = p1 * 100;
-                let p = p1.split(".");
-                let p2 = "";
-                if (p.length > 0) {
-                    p2 = p[0];
-                }
-                else p2 = p1;
+        let acum = 0;
+        GlucLevels.forEach(item => {
+            row = `${row}
+            <div class="col-md-1" style="color:white;">
+                ${item.count}
+            </div>`;
+            acum += item.count;
+            item.acum = acum;
+        });
+        row = `${row}<div class="col-md-2"></div></div>
+        <div class="row">
+            <div class="col-md-2">Acumulado</div>`;
 
-                if (p2.length > 3)
-                    p2 = p2.substr(0, 3);
-                p2 = `${p2}%`
-                percLine = `${percLine}<div class="col-md-1">${p2}</div>`
-                sumLine = `${sumLine}<div class="col-md-1">${sumGluc(i)}</div>`
-            }
-            percLine = `<div class="col-md-2>${percLine}<div class="col-md-2>`;
-            sumLine = `<div class="col-md-2>${sumLine}<div class="col-md-2>`;
-        }
 
-        html = `
+        GlucLevels.forEach(item => {
+            row = `${row}
+            <div class="col-md-1" style="color:white;">
+                ${item.acum}
+            </div>`;
+        });
+        row = `${row}<div class="col-md-2"></div></div>
+        <div class="row">
+            <div class="col-md-2">%</div>`;
+
+
+            GlucLevels.forEach(item => {
+            let x = (item.count/countGluc)*100;
+            
+            row = `${row}
+            <div class="col-md-1" style="color:white;">
+                ${(parseFloat(x).toFixed(0)+"%")}
+            </div>`;
+        });
+        row = `${row}<div class="col-md-2"></div></div>
+        <div class="row">
+            <div class="col-md-2">% Acum</div>`;
+
+
+
+        GlucLevels.forEach(item => {
+            let x = (item.acum/countGluc)*100;
+            
+            row = `${row}
+            <div class="col-md-1" style="color:white;">
+                ${(parseFloat(x).toFixed(0)+"%")}
+            </div>`;
+        });
+        row = `${row}<div class="col-md-2"></div></div>
+        <div class="row">
+            <div class="col-md-2"></div>`;
+
+            
+
+
+        totalsHtml = `<div class="row"><hr></div>
         <div class="row">
             <div class="col-md-12">
-                <p class="text-info text-center">${glucCount} Mediciones Glucogeno</p>
+                <p class="text-info text-center">
+                ${countGluc} Mediciones de Glucogeno
+                </p>
             </div>
         </div>
-        <div class="row">
-            ${row}
-        </div>
-        <div class="row">
-            ${countLine}
-        </div>
-        <div class="row">
-            ${percLine}
-        </div>
-        <div class="row">
-            ${sumLine}
-        </div>`;
-
-        console.log("row", row);
-        console.log("coutnLine", countLine);
-        console.log("percLine", percLine);
-        console.log("sumLine".sumLine);
-
-        console.log("totals", html);
-        localStorage.setItem("row", row);
-        localStorage.setItem("coutnLine", countLine);
-        localStorage.setItem("percLine", percLine);
-        localStorage.setItem("sumLine", sumLine);
-        localStorage.setItem("totales", html);
-        return html;
+        ${row}`;
+        return totalsHtml;
     }
+
 
     function buildGlucRange() {
         let glucRange = `<div class="row">
@@ -457,14 +466,14 @@
         writeInnerHtml("GLUC_RANGE", glucRange);
 
     }
-    
+
     function renderMaster() {
         let recType = "";
         let classText = "";
-        glucLevels = [0, 0, 0, 0, 0, 0, 0, 0];
-        let countGluc = 0;
         let icon = "";
         let iconColor = "";
+        let styleTag = "";
+
 
         if (master.lenght < 1)
             return;
@@ -493,15 +502,15 @@
                 master2 = sortArray(master, 3);
 
             buildGlucRange();
-            let styleTag = "";
-         
 
-            GlucLevels.forEach(item=>{
+
+            GlucLevels.forEach(item => {
                 item.count = 0;
-                item.acumulado =0;
+                item.acumulado = 0;
             })
 
             let divRecords = "";
+            countGluc = 0;
             for (var i = 0; i < master2.length; i++) {
                 recType = master[i][9].trim();
 
@@ -519,9 +528,7 @@
                 if (icon == "")
                     continue;
 
-
                 let iconTag = `<span style="font-size: 40px; ${iconColor}"><i class="${icon}"></i></span>`;
-
                 divRecords = buildRecords(recType, master2[i][1], master2[i][12]);
 
                 let value = master2[i][12];
@@ -530,110 +537,36 @@
                     let gl = GlucLevels.filter(x => value >= x.min && value < x.max);
                     if (gl.length > 0) {
                         styleTag = `style="background-color:${gl[0].backgroundColor};"`;
-                        gl.count++;
-                        console.log("styleTag",styleTag);
-                        console.log("glucose level:",gl);
+                        gl[0].count++;
                     }
                 }
 
                 row = `${row}
-            <div class="row row-fat">
-                <div class="col-md-1">
-                    ${iconTag}
-                </div>
-                <div class="col-md-1">
-                    ${days[master2[i][8] + 1]} 
-                </div>
-                <div class="col-md-2">
-                  ${months[master2[i][6]]}-${master2[i][7]}
-                </div>
-                <div class="col-md-2">
-                  ${master2[i][11]}
-                </div>
-                <div id="data${master2[i][1]}" class="col-md-6" ${styleTag}>
-                    ${divRecords}
-                </div>
-            </div>`;
+                    <div class="row row-fat">
+                    <div class="col-md-1">
+                        ${iconTag}
+                    </div>
+                    <div class="col-md-1" ${styleTag}>
+                        ${days[master2[i][8] + 1]} 
+                    </div>
+                    <div class="col-md-2" ${styleTag}>
+                    ${months[master2[i][6]]}-${master2[i][7]}
+                    </div>
+                    <div class="col-md-2" ${styleTag} >
+                    ${master2[i][11]}
+                    </div>
+                    <div id="data${master2[i][1]}" class="col-md-6" ${styleTag}>
+                        ${divRecords}
+                    </div>
+                </div>`;
             }
         }
-        let glucTotals = `
-        <div class="row"><hr></div>
-        <div class="row">
-    <div class="col-md-12">
-        <p class="text-info text-center">
-            ${countGluc} Mediciones de Glucogeno
-        </p>
-    </div>
-</div>
-<div class="row">
-    <div class="col-md-2">
-    </div>
-    <div class="col-md-1" style="background-color:blueviolet; color:white;">
-        60
-    </div>
-    <div class="col-md-1" style="background-color:forestgreen; color:white;">
-        90
-    </div>
-    <div class="col-md-1" style="background-color:green; color:white;">
-        100
-    </div>
-    <div class="col-md-1" style="background-color:yellow; color:white;">
-        120
-    </div>
-    <div class="col-md-1" style="background-color:red; color:white;">
-        140
-    </div>
-    <div class="col-md-1" style="background-color:slateblue; color:white;">
-        160
-    </div>
-    <div class="col-md-1" style="background-color:navy; color:white;">
-        180
-    </div>
-    <div class="col-md-1" style="background-color:darkmagenta; color:white;">
-        >180
-    </div>
-    <div class="col-md-2">
-    </div>
-
-</div>
-<div class="row">
-    <div class="col-md-2">
-    </div>
-    <div class="col-md-1">
-        ${glucLevels[0]}
-    </div>
-    <div class="col-md-1">
-        ${glucLevels[1]}
-    </div>
-    <div class="col-md-1">
-        ${glucLevels[2]}
-    </div>
-    <div class="col-md-1">
-        ${glucLevels[3]}
-    </div>
-    <div class="col-md-1">
-        ${glucLevels[4]}
-    </div>
-    <div class="col-md-1">
-        ${glucLevels[5]}
-    </div>
-    <div class="col-md-1">
-        ${glucLevels[6]}
-    </div>
-    <div class="col-md-1">
-        ${glucLevels[7]}
-    </div>
-    <div class="col-md-2">
-    </div>`;
-        //writeInnerHtml("result",glucTotals);
-        row = `${row}`;
-        //let totals2 = getTotals(glucTotals);
-
-        writeInnerHtml("title", glucTotals);
-
+        countGluc--;
+        let glucTotalsHtml = getGlucTotals();
+        writeInnerHtml("title", glucTotalsHtml);
         writeInnerHtml("content", row);
-
     }
+
 
     function renderDrugItems(div = "rows") {
 
@@ -1155,7 +1088,6 @@
     }
 
     function successHandler(json) {
-        localStorage.setItem("json", json);
         processResponse(json);
     }
 
