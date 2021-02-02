@@ -6,7 +6,11 @@ import { Utils } from "./Utils";
 
 
 
-
+function testGetItems()
+{
+    let sv = new Service();
+    let result = sv.getItems();
+}
 
 
 function testImportBatchGLUC()

@@ -1,11 +1,13 @@
 import { DomainResponse } from "../models/DomainResponse";
 import { FileInfo } from "../Models/FileInfo";
 import { FileProcessItem } from "../models/FileProcessItem";
+import { GlucLevel } from "../models/GlucLevel";
 import { GSResponse } from "../Models/GSResponse";
 import { KVPCollection } from "../models/KVPCollection";
 import { NamedArray } from "../models/NamedAray";
 import { RecordItem } from "../models/RecordItem";
 import { RecordItemBase } from "../models/RecordItemBase";
+import { RecTypeInfo } from "../models/RecTypeInfo";
 import { G } from "./G";
 import { SysLog } from "./SysLog";
 import { Utils } from "./utils";
@@ -111,6 +113,8 @@ export class Service {
         let record = new RecordItem();
 
 
+       
+
         let js = "";
         for (var i = 0; i < nameList.length; i++) {
             js = `${js}let ${nameList[i]} = ${JSON.stringify(new NamedArray(nameList[i]))};`;
@@ -126,9 +130,31 @@ export class Service {
     //todo: for now get the raw array, later a typed array
     getItems(): string {
         let grid = Utils.getData(this.db, "Items");
-        let js = `Items.arr = ${JSON.stringify(grid)}`;
+        let items = grid.filter(x=>x[0]=="RT");
+
+        let recTypes = new Array<RecTypeInfo>();
+        items.forEach(item=>{
+            let rt = new RecTypeInfo(item);
+            recTypes.push(rt);
+        })
+
+        let glucLevelsText = `0,59,"blueviolet";60,89,"green";90,99,"yellow";100,119,"red";120,139,"slateblue";140,159,"navy";160,179,"darkmagenta";180,999,"darkblue"`;
+        let list = glucLevelsText.split(";");
+        let gl = new Array<GlucLevel>();
+        list.forEach(item=>{
+            let level = new GlucLevel(item);
+            gl.push(level);
+        })
+
+
+
+        let js = `Items.arr = ${JSON.stringify(grid)};
+        let RecTypes = ${JSON.stringify(recTypes)};
+        let GlucLevels = ${JSON.stringify(gl)};`;
         return js;
     }
+
+
 
     getFoodItems() {
         let grid = Utils.getData(this.db, "FoodItems");
