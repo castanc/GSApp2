@@ -42,7 +42,22 @@
         </div>
     </div>
     <div class="col-md-2">
+        <!--
         <button type="btn" class="btn btn-secondary btn-block fat-row big-font" onclick="edit()">Reporte</button>
+        -->
+        <div class="dropdown">
+            <button class="btn btn-primary dropdown-toggle  btn-block fat-row big-font" type="button" id="dropdownMenuButton" data-toggle="dropdown"
+                aria-haspopup="true" aria-expanded="false">
+                Reportes
+            </button>
+            <div class="dropdown-menu fat-row big-font" aria-labelledby="dropdownMenuButton">
+                <a class="dropdown-item"  onclick="edit()">Anual</a>
+                <a class="dropdown-item" onclick="generalReport()">Filtrado</a>
+            </div>
+        </div>        
+
+
+
     </div>
     <div class="col-md-3">
         <button type="btn" class="btn btn-secondary btn-block fat-row big-font" onclick="cancelSubmit()"

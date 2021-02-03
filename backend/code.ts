@@ -5,6 +5,13 @@ import { SysLog } from "./SysLog";
 import { Utils } from "./Utils";
 
 
+function testReport()
+{
+    let data= `{"arr":[{"key":"FECHA_DESDE","value":"2020-11-01"},{"key":"FECHA_HASTA","value":"2021-02-28"},{"key":"HORA_DESDE","value":"00:00"},{"value":"11:59","key":"HORA_HASTA"}]}`;
+    let Data = JSON.parse(data);
+    let sv = new Service();
+    let response = sv.report(Data);
+}
 
 function testGetItems()
 {
@@ -28,6 +35,7 @@ function testImportBatchGLUC()
     }
 
 }
+
 
 
 
@@ -168,7 +176,26 @@ function getPageArr(){
     return "";
 }
 
-function processForm(Data, records, colSep = "\t", lineSep = "\bn") {
+function report(Data)
+{
+    SysLog.log(0,"report","code.ts report()", "Data" ,JSON.stringify(Data));
+    let sv = new Service();
+    let response = new GSResponse();
+    try{
+        response =sv.report(Data);
+    }
+    catch(ex)
+    {
+        handleException(ex,"edit()");
+    }
+    return JSON.stringify(response);
+
+}
+
+
+
+
+function processForm(Data, records, colSep = "\t", lineSep = "\n") {
 
     let sv = new Service();
     let html = "";

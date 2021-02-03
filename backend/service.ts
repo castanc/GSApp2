@@ -113,7 +113,7 @@ export class Service {
         let record = new RecordItem();
 
 
-       
+
 
         let js = "";
         for (var i = 0; i < nameList.length; i++) {
@@ -130,10 +130,10 @@ export class Service {
     //todo: for now get the raw array, later a typed array
     getItems(): string {
         let grid = Utils.getData(this.db, "Items");
-        let items = grid.filter(x=>x[0]=="RT");
+        let items = grid.filter(x => x[0] == "RT");
 
         let recTypes = new Array<RecTypeInfo>();
-        items.forEach(item=>{
+        items.forEach(item => {
             let rt = new RecTypeInfo(item);
             recTypes.push(rt);
         })
@@ -146,9 +146,9 @@ export class Service {
         //     gl.push(level);
         // })
 
-        items = grid.filter(x=> x[0]=="RG");
+        items = grid.filter(x => x[0] == "RG");
         let glucLevels = new Array<GlucLevel>();
-        items.forEach(item=>{
+        items.forEach(item => {
             let gl = new GlucLevel(item)
             glucLevels.push(gl);
         })
@@ -632,6 +632,157 @@ export class Service {
         return html;
     }
 
+    getGlucTotals(GlucLevels) {
+        let totalsHtml = "";
+        let row = `<div class="row">
+            <div class="col-md-2">Rangos</div>`;
+        let style = "";
+        console.log("GlucLevels", GlucLevels);
+
+        GlucLevels.forEach(item => {
+            style = `style="background-color:${item.backgroundColor}; color:white;"`;
+            row = `${row}
+            <div class="col-md-1" ${style}>
+                &lt${item.max + 1}
+            </div>`;
+        });
+        row = `${row}<div class="col-md-2"></div></div>
+        <div class="row">
+            <div class="col-md-2">Mediciones</div>`;
+
+        let acum = 0;
+        GlucLevels.forEach(item => {
+            row = `${row}
+            <div class="col-md-1" style="color:white;">
+                ${item.count}
+            </div>`;
+            acum += item.count;
+            item.acum = acum;
+        });
+        row = `${row}<div class="col-md-2"></div></div>
+        <div class="row">
+            <div class="col-md-2">Acumulado</div>`;
+
+
+        GlucLevels.forEach(item => {
+            row = `${row}
+            <div class="col-md-1" style="color:white;">
+                ${item.acum}
+            </div>`;
+        });
+        row = `${row}<div class="col-md-2"></div></div>
+        <div class="row">
+            <div class="col-md-2">%</div>`;
+
+
+        GlucLevels.forEach(item => {
+            let x = (item.count / countGluc) * 100;
+
+            row = `${row}
+            <div class="col-md-1" style="color:white;">
+                ${(parseFloat(x).toFixed(0) + "%")}
+            </div>`;
+        });
+        row = `${row}<div class="col-md-2"></div></div>
+        <div class="row">
+            <div class="col-md-2">% Acum</div>`;
+
+
+
+        GlucLevels.forEach(item => {
+            let x = (item.acum / countGluc) * 100;
+
+            row = `${row}
+            <div class="col-md-1" style="color:white;">
+                ${(parseFloat(x).toFixed(0) + "%")}
+            </div>`;
+        });
+        row = `${row}<div class="col-md-2"></div></div>
+        <div class="row">
+            <div class="col-md-2"></div>`;
+
+
+
+
+        totalsHtml = `<div class="row"><hr></div>
+        <div class="row">
+            <div class="col-md-12">
+                <p class="text-info text-center">
+                ${countGluc} Mediciones de Glucogeno
+                </p>
+            </div>
+        </div>
+        ${row}`;
+        return totalsHtml;
+    }
+
+
+    edit(year) {
+        let response = new GSResponse();
+        let fileName = `${year}_data`;
+        let ss = Utils.openSpreadSheet(fileName, this.folder);
+
+        //set first column format to plain text
+        let sheet = ss.getSheetByName("Master");
+        var column = sheet.getRange("L2:L");
+        column.setNumberFormat("@");
+
+        let master;
+        let detail;
+        if (ss != null) {
+            let sort = [{ column: 10, ascending: false }, {
+                column: 11
+                , ascending: true
+            }];
+            response.master = Utils.getData2(ss, "Master", sort);
+            response.detail = Utils.getData2(ss, "Detail");
+        }
+        else {
+            response.domainResult = -1;
+            response.addError("error", `File ${fileName} not found`, 404);
+        }
+
+        return response;
+    }
+
+
+    report(data: KVPCollection): GSResponse {
+        let response = new GSResponse();
+        let Data = new KVPCollection();
+        Data.arr = data.arr;
+
+        let dt1 = Utils.getDateFromYMD(Data.get("FECHA_DESDE"));
+        let dt2 = Utils.getDateFromYMD(Data.get("FECHA_HASTA"));
+        let days1 = Utils.getDays(dt1);
+        let days2 = Utils.getDays(dt2);
+        let mins1 = Utils.getMinutes(Data.get("HORA_DESDE"));
+        let mins2 = Utils.getMinutes(Data.get("HORA_HASTA"));
+
+        let masters;
+        let details;
+
+        masters = [[]];
+        details = [[]];
+
+        for (var i = dt1.getFullYear(); i <= dt2.getFullYear(); i++) {
+            let fileName = `${i}_data`;
+            let ss = Utils.openSpreadSheet(fileName, this.folder);
+            if (ss != undefined) {
+                let grid = Utils.getData(ss, "Master").filter(x => (x[3] >= days1 && x[3] <= days2);
+
+                if (grid.length > 0) {
+                    masters = masters.concat(grid);
+                    let detail = Utils.getData(ss, "Detail");
+                    details = details.concat(detail);
+                }
+            }
+        }
+        response.master = masters;
+        response.detail = details;
+        return response;
+
+    }
+
     processForm(Data: KVPCollection, records: Array<RecordItemBase>, colSep = "\t", lineSep = "\n"): GSResponse {
         this.getLogLevel("Id");
         SysLog.log(1, "data received", "processForm()", JSON.stringify(Data));
@@ -647,9 +798,9 @@ export class Service {
         let url = "";
         if (recType == "GLUC") {
             url = data2.get("URL").trim();
-            if (url != "" && url.toLowerCase().indexOf("http")==0) {
+            if (url != "" && url.toLowerCase().indexOf("http") == 0) {
                 fpi = this.importBatchGluc(url);
-                SysLog.log(9999,"fpi","service.ts 618 processFor,()",JSON.stringify(fpi));
+                SysLog.log(9999, "fpi", "service.ts 618 processFor,()", JSON.stringify(fpi));
                 response.addHtml("modalBody", this.renderBatchResults(fpi));
                 return response;
             }
@@ -658,7 +809,7 @@ export class Service {
             url = data2.get("URL");
             if (url != "") {
                 fpi = this.importBatchLegacy(url);
-                SysLog.log(9999,"fpi","service.ts 627 processFor,()",JSON.stringify(fpi));
+                SysLog.log(9999, "fpi", "service.ts 627 processFor,()", JSON.stringify(fpi));
                 response.addHtml("modalBody", this.renderBatchResults(fpi));
             }
             else {
@@ -703,8 +854,8 @@ export class Service {
 
 
         let v = data2.getColValues().split(",");
-        SysLog.log(0,"row verification v:","service.ts oprocessForm() 675",JSON.stringify(v));
-        SysLog.log(0,"data2","service.ts oprocessForm() 675",JSON.stringify(data2));
+        SysLog.log(0, "row verification v:", "service.ts oprocessForm() 675", JSON.stringify(v));
+        SysLog.log(0, "data2", "service.ts oprocessForm() 675", JSON.stringify(data2));
         sheet.appendRow(v);
 
         if (records != null && records.length > 0) {
@@ -833,32 +984,5 @@ export class Service {
         return id;
     }
 
-    edit(year) {
-        let response = new GSResponse();
-        let fileName = `${year}_data`;
-        let ss = Utils.openSpreadSheet(fileName, this.folder);
-
-         //set first column format to plain text
-         let sheet = ss.getSheetByName("Master");
-         var column = sheet.getRange("L2:L");
-         column.setNumberFormat("@");
-
-        let master;
-        let detail;
-        if (ss != null) {
-            let sort = [{ column: 10, ascending: false }, {
-                column: 11
-                , ascending: true
-            }];
-            response.master = Utils.getData2(ss, "Master", sort);
-            response.detail = Utils.getData2(ss, "Detail");
-        }
-        else {
-            response.domainResult = -1;
-            response.addError("error", `File ${fileName} not found`, 404);
-        }
-
-        return response;
-    }
 
 }

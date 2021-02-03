@@ -47,21 +47,37 @@
         return dt;
     }
 
+    function getMinutes(time) {
+        let minutes = 0;
+        let p = time.split(":");
+        try {
+            let h = Number(p[0]);
+            let m = Number(p[1]);
+
+            minutes = h * 60 + m;
+        }
+        catch (ex) {
+
+        }
+
+        return minutes;
+    }
+
     function clearDiv(id) {
         let doc = document.getElementById(id);
         if (doc != undefined)
             doc.innerHTML = "";
     }
 
-    function setValue(fieldId, value) {
-        var x = document.forms["myForm"][fieldId];
+    function setValue(fieldId, value, form = "myForm") {
+        var x = document.forms[form][fieldId];
         if (x != undefined)
             x.value = value;
 
     }
 
-    function getValue(fieldId) {
-        var x = document.forms["myForm"][fieldId];
+    function getValue(fieldId, form = "myForm") {
+        var x = document.forms[form][fieldId];
         if (x == undefined)
             return "";
         else return x.value;
