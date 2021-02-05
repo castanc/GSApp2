@@ -414,9 +414,9 @@ export class Utils {
         {
             if (sep==""  )
             {
-                seconds = Number(dt.substring(0,2)) +
-                    Number (dt.substring(2,2)) + 
-                    Number (dt.substring(4,2));
+                seconds = Number(dt.substr(0,2)) +
+                    Number (dt.substr(2,2)) + 
+                    Number (dt.substr(4,2));
             }
             else
             {

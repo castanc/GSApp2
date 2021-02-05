@@ -35,6 +35,8 @@
     let action = "";
     let minutes1 = 0;
     let minutes2 = 0;
+    let openIds = ",";
+    let openId = 0;
 
 
 
@@ -134,8 +136,10 @@
 
     }
 
-    function renderFoodItems() {
+    function renderFoodItems(div = "rows", readOnly = false) {
         let row = "";
+        let delIcon = "";
+        let inputFields = "";
         if (records.length > 0) {
 
             row = `<div class="row">
@@ -165,9 +169,47 @@
             </div>`;
             }
         }
-        writeInnerHtml("rows", row);
+        writeInnerHtml(div, row);
 
     }
+
+    function renderFoodItemsReadOnly(div = "rows", readOnly = false) {
+        let row = "";
+        let delIcon = "";
+        let inputFields = "";
+        if (records.length > 0) {
+
+            row = `<div class="row">
+            <div class="col-md-2"></div>
+            <div class="col-md-2"></div>
+            <div class="col-md-3">Cant</div>
+            <div class="col-md-1">Un</div>
+            <div class="col-md-4">Food Item</div>
+            </div>
+            `;
+
+            for (var i = 0; i < records.length; i++) {
+                row = `${row}
+            <div class="row">
+                <div class="col-md-2">
+                    <img src="${records[i].url}" class="thumb"></img>
+                    </div>
+                <div class="col-md-2 cursorPointer"><i class="fas fa-trash-alt"  onclick="removeItem('${DrugItems}',${i})"></i></div>
+                <div class="col-md-3">
+                    <input type="number" id="q{${i}} name="q${i}" placeholder="Cant" value="${records[i].cant}" onchange="setRecord(${i},this.value)">
+                </div>
+                <div class="col-md-1">
+                    ${records[i].unit}
+                </div>
+                <div class="col-md-4">${records[i].descr}</div>
+
+            </div>`;
+            }
+        }
+        writeInnerHtml(div, row);
+
+    }
+
 
 
     function getIcon(recType) {
@@ -295,6 +337,108 @@
             }
         }
         return result;
+    }
+
+    function renderFoodItemsReadOnly(div = "rows") {
+        let row = "";
+        let delIcon = "";
+        let inputFields = "";
+        if (records.length > 0) {
+
+            row = `<div class="row">
+            <div class="col-md-2"></div>
+            <div class="col-md-2"></div>
+            <div class="col-md-3">Cant</div>
+            <div class="col-md-1">Un</div>
+            <div class="col-md-4">Food Item</div>
+            </div>
+            `;
+
+            if ( records[0].url === undefined )
+            {
+                records.forEach(record =>{
+                    let fItem = FoodItems.arr.filter(x=>x[1]==record.itemId);
+
+                if (fItem.length > 0  )
+                {
+                    record.descr = fItem[2];
+                    record.unit = fItem[4];
+                    record.url = fItem[9];
+                }
+                })
+            }
+
+            for (var i = 0; i < records.length; i++) {
+                row = `${row}
+            <div class="row">
+                <div class="col-md-2">
+                    <img src="${records[i].url}" class="thumb"></img>
+                    </div>
+                <div class="col-md-2 cursorPointer"><i class="fas fa-trash-alt"  onclick="removeItem('${DrugItems}',${i})"></i></div>
+                <div class="col-md-3">
+                    <input type="number" id="q{${i}} name="q${i}" placeholder="Cant" value="${records[i].cant}" onchange="setRecord(${i},this.value)">
+                </div>
+                <div class="col-md-1">
+                    ${records[i].unit}
+                </div>
+                <div class="col-md-4">${records[i].descr}</div>
+
+            </div>`;
+            }
+        }
+        writeInnerHtml(div, row);
+
+    }
+
+
+
+
+    function openDetail(recType,id){
+        console.log(`openDetail(${recType},${id}`);
+        if ( ",FOOD,EXE,DRUG,".indexOf(recType) < 0 )
+            return;
+        
+        if ( openId == id )
+        {
+            hideDiv(`detail${id}`);
+            openIds = 0;
+        }
+
+        if ( openIds.indexOf(`,${id},`)>0)
+        {
+            showDiv(`detail${id}`);
+            openId = id;
+            return;
+        }
+        records = [];
+        if ( recType == "FOOD")
+        {
+            let details = detail.filter(x=>x[1]==id);
+            details.forEach(det => {
+                record = new RecordItem();
+                record.itemId = det[3];
+                record.cant = det[4];
+
+                let fItem = FoodItems.arr.filter(x=>x[1]==record.itemId);
+                if (fItem.length > 0  )
+                {
+                    record.descr = fItem[0][2]; 
+                    record.unit = fItem[0][4];
+                    record.url = fItem[0][9];
+                }
+                else
+                    record.descr = `fit ${r.itemId} not found`;
+
+                records.push(record);
+            });
+            if ( records.length > 0 )
+            {
+                openIds = `${openIds},${id}`;
+                renderFoodItemsReadOnly(`detail${id}`);
+                showDiv(`detail${id}`)
+                openId = id;
+            }
+        }
     }
 
 
@@ -499,7 +643,6 @@
             let divRecords = "";
             countGluc = 0;
             for (var i = 0; i < master2.length; i++) {
-                console.log("renderMaster()",i,master2[i]);
                 if ( master2[i].length < 9 )
                     continue;
 
@@ -526,7 +669,9 @@
                 if (icon == "")
                     continue;
 
-                let iconTag = `<span style="font-size: 40px; ${iconColor}"><i class="${icon}"></i></span>`;
+                let iconTag = `<span style="font-size: 40px; ${iconColor}">
+                    <i class="${icon}" onclick="openDetail('${recType}',${master2[i][1]})"></i>
+                    </span>`;
                 divRecords = buildRecords(recType, master2[i][1], master2[i][12]);
 
                 let value = master2[i][12];
@@ -541,30 +686,35 @@
 
                 row = `${row}
                     <div class="row row-fat">
-                    <div class="col-md-1">
-                        ${iconTag}
+                        <div class="col-md-1">
+                            ${iconTag}
+                        </div>
+                        <div class="col-md-1" ${styleTag}>
+                            ${days[master2[i][8] + 1]} 
+                        </div>
+                        <div class="col-md-2" ${styleTag}>
+                        ${months[master2[i][6]]}-${master2[i][7]}
+                        </div>
+                        <div class="col-md-2" ${styleTag} >
+                        ${master2[i][11]}
+                        </div>
+                        <div id="data${master2[i][1]}" class="col-md-6" ${styleTag}>
+                            ${divRecords}
+                        </div>
                     </div>
-                    <div class="col-md-1" ${styleTag}>
-                        ${days[master2[i][8] + 1]} 
-                    </div>
-                    <div class="col-md-2" ${styleTag}>
-                    ${months[master2[i][6]]}-${master2[i][7]}
-                    </div>
-                    <div class="col-md-2" ${styleTag} >
-                    ${master2[i][11]}
-                    </div>
-                    <div id="data${master2[i][1]}" class="col-md-6" ${styleTag}>
-                        ${divRecords}
-                    </div>
-                </div>`;
+                    <div id="detail${master2[i][1]}" class="row">
+                    </div>`;
             }
         }
         countGluc--;
         let glucTotalsHtml = getGlucTotals();
+        writeInnerHtml("btnSubmit","Report");
         writeInnerHtml("title", glucTotalsHtml);
-        writeInnerHtml("content", row);
+        writeInnerHtml("report", row);
     }
 
+
+    
 
     function renderDrugItems(div = "rows") {
 
@@ -624,7 +774,7 @@
                     ${records[i].unit}
                 </div>
                 <div class="col-md-3">
-                    <input type="number" id="h{${i}} name="t${i}" placeholder="HH:MM:SS" pattern="^([0-1]?[0-9]|2[0-4]):([0-5][0-9])(:[0-5][0-9])?$" value="${records[i].time}" onchange="setRecordTime(${i},this.value)">
+                    <input type="number" id="h{${i}} name="t${i}" placeholder="HH:MM:SS" pattern="^([0-1]?[0-9]|2[0-4]):([0-5][0-9])(:[0-5][0-9])?$" value="${records[i].time}" onchange="setTime(${i},this.value)">
                 </div>
             </div>`;
             }
@@ -715,7 +865,7 @@
             writeInnerHtml("FOOD_CATEGORIES", htmlSelect);
         }
         else if (recType == "EXE") {
-            requiredFields = "REC_TYPE,FECHA,HORA";
+            requiredFields = "REC_TYPE,FECHA,HORA,DISTANCE,TIME";
             initializeData(requiredFields);
             htmlSelect = getSelect("ExeItems", ExeItems.arr, 0, 1, "Select Deporte", "", true, 1);
             writeInnerHtml("EXE_ITEMS", htmlSelect);
@@ -741,7 +891,7 @@
 
         }
         else if (recType == "GLUC") {
-            requiredFields = "REC_TYPE,FECHA,HORA,URL";
+            requiredFields = "REC_TYPE,FECHA,HORA,GLUC_DATA";
             initializeData(requiredFields);
         }
         else if (recType == "LEG") {
@@ -752,7 +902,6 @@
     }
 
     function processData(recType, data) {
-        console.log(`processData() ${recType}`)
         console.log("data:", data);
         initializeFormRecType();
         Data.update("REC_TYPE", recType);
@@ -1149,7 +1298,7 @@
 
     function newRecord() {
         console.log("newRecord");
-        clearDiv("GLUC_RANGE");
+        clearDiv("REPORT");
         editMode = false;
         writeInnerHtml("title", "PrecKee. Personal Record Keeper");
         formChanged = false;
@@ -1161,6 +1310,7 @@
         showDiv("DIVrecType");
         clearDiv("content");
         clearDiv("rows");
+        clearDiv("report");
         hideDiv("submitArea");
         records = [];
         recType = "";
@@ -1176,8 +1326,8 @@
         htmlRecType = getHtmlSelectFiltered(Items.arr, "RT", "Seleccione Registro", true);
         newRecord();
         showMessage("Ready");
-        console.log("items", Items.arr);
 
+        console.log("items.arr",Items.arr);
 
 
         setTimeout(function () {

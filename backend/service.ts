@@ -632,90 +632,6 @@ export class Service {
         return html;
     }
 
-    getGlucTotals(GlucLevels) {
-        let totalsHtml = "";
-        let row = `<div class="row">
-            <div class="col-md-2">Rangos</div>`;
-        let style = "";
-        console.log("GlucLevels", GlucLevels);
-
-        GlucLevels.forEach(item => {
-            style = `style="background-color:${item.backgroundColor}; color:white;"`;
-            row = `${row}
-            <div class="col-md-1" ${style}>
-                &lt${item.max + 1}
-            </div>`;
-        });
-        row = `${row}<div class="col-md-2"></div></div>
-        <div class="row">
-            <div class="col-md-2">Mediciones</div>`;
-
-        let acum = 0;
-        GlucLevels.forEach(item => {
-            row = `${row}
-            <div class="col-md-1" style="color:white;">
-                ${item.count}
-            </div>`;
-            acum += item.count;
-            item.acum = acum;
-        });
-        row = `${row}<div class="col-md-2"></div></div>
-        <div class="row">
-            <div class="col-md-2">Acumulado</div>`;
-
-
-        GlucLevels.forEach(item => {
-            row = `${row}
-            <div class="col-md-1" style="color:white;">
-                ${item.acum}
-            </div>`;
-        });
-        row = `${row}<div class="col-md-2"></div></div>
-        <div class="row">
-            <div class="col-md-2">%</div>`;
-
-
-        GlucLevels.forEach(item => {
-            let x = (item.count / countGluc) * 100;
-
-            row = `${row}
-            <div class="col-md-1" style="color:white;">
-                ${(parseFloat(x).toFixed(0) + "%")}
-            </div>`;
-        });
-        row = `${row}<div class="col-md-2"></div></div>
-        <div class="row">
-            <div class="col-md-2">% Acum</div>`;
-
-
-
-        GlucLevels.forEach(item => {
-            let x = (item.acum / countGluc) * 100;
-
-            row = `${row}
-            <div class="col-md-1" style="color:white;">
-                ${(parseFloat(x).toFixed(0) + "%")}
-            </div>`;
-        });
-        row = `${row}<div class="col-md-2"></div></div>
-        <div class="row">
-            <div class="col-md-2"></div>`;
-
-
-
-
-        totalsHtml = `<div class="row"><hr></div>
-        <div class="row">
-            <div class="col-md-12">
-                <p class="text-info text-center">
-                ${countGluc} Mediciones de Glucogeno
-                </p>
-            </div>
-        </div>
-        ${row}`;
-        return totalsHtml;
-    }
-
 
     edit(year) {
         let response = new GSResponse();
@@ -798,7 +714,7 @@ export class Service {
         let url = "";
         if (recType == "GLUC") {
             url = data2.get("URL").trim();
-            if (url != "" && url.toLowerCase().indexOf("http") == 0) {
+            if (url != "" && url.toLowerCase().indexOf("http") >= 0) {
                 fpi = this.importBatchGluc(url);
                 SysLog.log(9999, "fpi", "service.ts 618 processFor,()", JSON.stringify(fpi));
                 response.addHtml("modalBody", this.renderBatchResults(fpi));
@@ -852,6 +768,8 @@ export class Service {
         data2.update("Y", Y.toString());
         data2.update("DOW", DOW.toString());
 
+      
+
 
         let v = data2.getColValues().split(",");
         SysLog.log(0, "row verification v:", "service.ts oprocessForm() 675", JSON.stringify(v));
@@ -864,7 +782,7 @@ export class Service {
             lastRow = range.getLastRow();
 
             data2 = new KVPCollection();
-            data2.initialize("ROW,IDMASTER,INACTIVE,ITEMID,CANT");
+            data2.initialize("ROW,IDMASTER,INACTIVE,ITEMID,CANT,DATA,DATA2");
             if (lastRow < 2) {
                 let cols = data2.getColNames().split(",");
                 sheet.appendRow(cols);
