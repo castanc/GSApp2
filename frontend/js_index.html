@@ -46,11 +46,15 @@
     let action = "";
     let minutes1 = 0;
     let minutes2 = 0;
+    let glucMin = 0;
+    let glucMax = 300;
+    let horaDesde = "00:00";
+    let horaHasta = "11:59";
     let openIds = ",";
     let openId = 0;
     let subtitle = "";
     let fechaDesde = "";
-    let overrideLocalStorage = true;
+    let overrideLocalStorage = false;
 
 
 
@@ -612,6 +616,22 @@
 
     }
 
+    function filtrar(){
+        showDiv("spinner");
+        horaDesde = Data.get("HORA_DESDE");
+        horaHasta = Data.get("HORA_HASTA")
+        minutes1 = getMinutes(horaDesde);
+        minutes2 = getMinutes(horaHasta);
+        let x  = Data.getNumber("GLUC_DESDE");
+        glucMin = x;
+        x =  Data.getNumber("GLUC_HASTA");
+        glucMax = x;
+        console.log("Data",Data);
+        console.log(`filtrar() ${horaDesde} ${horaHasta} ${glucMin} ${glucMax},x:${x}`);
+        renderMaster();
+        hideDiv("spinner");
+    }
+
 
 
     function closeedit() {
@@ -747,13 +767,13 @@
                 <div class="row">
                     <div class="col-md-2">
                     </div>
-                    <div class="col-md-3">
-                        <button type="button" class="btn btn-secondary btn-block big-font">Filtrar</button>
+                    <div class="col-md-1">
+                        <i class="fas fa-filter fa-3x"  onclick="filtrar()"></i>
                     </div>
-                    <div class="col-md-3">
-                        <button type="button" class="btn btn-secondary btn-block big-font" onclick="sort()">Ordenar Desc/Asc</button>
+                    <div class="col-md-1">
+                        <i class="fas fa-sort fa-3x"  onclick="sort()"></i>
                     </div>
-                    <div class="col-md-6"></div>
+                    <div class="col-md-8"></div>
                 </div>
             </div>`;
         return filtros;
@@ -870,7 +890,9 @@
 
                 if (recType == "GLUC") {
                     if (master2[i][4] < minutes1 ||
-                        master2[i][4] > minutes2)
+                        master2[i][4] > minutes2 ||
+                        master2[i][12] < glucMin ||
+                        master2[i][12] > glucMax)
                         continue;
                 }
 
@@ -1139,9 +1161,6 @@
     function onInputField(id, value) {
         console.log(`onInputField() ${id} ${value}`);
         Data.update(id, value);
-        if (id == "FECHA_DESDE")
-            setValue("FECHA", value);
-
     }
 
 
@@ -1192,7 +1211,8 @@
 
     function loadReport() {
         showDiv("spinner");
-        subtitle = `<p class="text-into text-center">Desde: ${Data.get("FECHA_DESDE")} Hasta: ${Data.get("FECHA_HASTA")}</p>`
+        subtitle = `<p class="text-into text-center">De: ${Data.get("FECHA_DESDE")} A: ${Data.get("FECHA_HASTA")}</p>`
+        disableButtons(true);
         google.script.run.withFailureHandler(failureHandler)
             .withSuccessHandler(processResponseReport)
             .report(Data);
@@ -1218,7 +1238,7 @@
             hideDiv("rows");
 
             if (action == "Report") {
-                subtitle = `<p class="text-into text-center">Desde: ${Data.get("FECHA_DESDE")} Hasta: ${Data.get("FECHA_HASTA")}</p>`
+                subtitle = `<p class="text-into text-center">D: ${Data.get("FECHA_DESDE")} A: ${Data.get("FECHA_HASTA")}</p>`
                 google.script.run.withFailureHandler(failureHandler)
                     .withSuccessHandler(processResponseReport)
                     .report(Data);
@@ -1326,6 +1346,7 @@
             hideDiv("DIVrecType")
             showDiv("reportArea");
             renderMaster();
+            disableButtons(false);
         }
         else {
             let row = `<tr><td>Server Error</td><td>${response.result}</td></tr>`;
@@ -1349,30 +1370,6 @@
         Data.update(fieldId, value);
     }
 
-    function setReportDates() {
-
-        requiredFields = "FECHA_DESDE,FECHA_HASTA,HORA_DESDE,HORA_HASTA,GLUC_DESDE,GLUC_HASTA,DIA_SEMANA";
-        initializeData(requiredFields);
-        hideDiv("submitArea");
-
-        dt = new Date();
-        let fecha = getDateYMD(dt);
-        setValueAndData("FECHA_HASTA", fecha);
-
-        let dt1 = new Date(dt.getFullYear(), 0, 1);
-        fecha = getDateYMD(dt1);
-        setValueAndData("FECHA_DESDE", fecha);
-
-        setValueAndData("HORA_DESDE", "00:00");
-        setValueAndData("HORA_HASTA", "11:59");
-        setValueAndData("GLUC_DESDE", "0");
-        setValueAndData("GLUC_HASTA", "300");
-
-        minutes1 = 0;
-        minutes2 = 12 * 60;
-
-
-    }
 
     function setReportDates() {
 
@@ -1391,7 +1388,6 @@
         minutes1 = 0;
         minutes2 = 12 * 60;
 
-
     }
 
     function setFilterData() {
@@ -1400,10 +1396,10 @@
         initializeData(requiredFields);
         hideDiv("submitArea");
 
-        setValueAndData("HORA_DESDE", "00:00");
-        setValueAndData("HORA_HASTA", "11:59");
-        setValueAndData("GLUC_DESDE", "0");
-        setValueAndData("GLUC_HASTA", "300");
+        setValueAndData("HORA_DESDE", horaDesde);
+        setValueAndData("HORA_HASTA", horaHasta);
+        setValueAndData("GLUC_DESDE", glucMin.toString());
+        setValueAndData("GLUC_HASTA", glucMax.toString());
 
         minutes1 = 0;
         minutes2 = 12 * 60;
@@ -1471,7 +1467,7 @@
         action = "Report";
         console.log("reportYear", Data);
 
-        subtitle = `<p class="text-into text-center">Desde: ${Data.get("FECHA_DESDE")} Hasta: ${Data.get("FECHA_HASTA")}</p>`
+        subtitle = `<p class="text-into text-center">De: ${Data.get("FECHA_DESDE")} A: ${Data.get("FECHA_HASTA")}</p>`
 
 
         google.script.run.withFailureHandler(failureHandler)
@@ -1509,7 +1505,7 @@
 
         action = "Report";
         console.log("reportMes", Data);
-        subtitle = `<p class="text-into text-center">Desde: ${Data.get("FECHA_DESDE")} Hasta: ${Data.get("FECHA_HASTA")}</p>`
+        subtitle = `<p class="text-into text-center">De: ${Data.get("FECHA_DESDE")} A: ${Data.get("FECHA_HASTA")}</p>`
 
 
         google.script.run.withFailureHandler(failureHandler)

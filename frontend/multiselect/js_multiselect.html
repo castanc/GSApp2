@@ -21,6 +21,12 @@
         }
         let rowsUnselected = "";
         let rowsSelected = "";
+
+        Data.forEach(item=>{
+            rowsUnselected = `${rowsUnselected}
+            <div>
+            </div>`;
+        })
         let html = `
         <div id="selected">
         </div>

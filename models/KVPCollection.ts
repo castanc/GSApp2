@@ -38,6 +38,21 @@ export class KVPCollection {
             return "";
     }
 
+    getNumber(key): number {
+        try
+        {
+        let existing = this.arr.filter(x => x.key == key);
+        if (existing.length > 0)
+            return Number(existing[0].value);
+        else
+            return 0;
+        }
+        catch(ex)
+        {
+            return 0;
+        }
+    }
+
     initialize(colNames) {
         let c = colNames.split(",");
         for (var i = 0; i < c.length; i++) {

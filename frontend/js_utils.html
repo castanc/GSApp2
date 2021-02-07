@@ -28,7 +28,7 @@
 
         return fecha;
     }
-    
+
     function getDateFromYMD(dtStr, sep = "-") {
         let dt = null;
         let fp = dtStr.split(" ");
@@ -91,10 +91,34 @@
 
     }
 
+    function getValueById(fieldId) {
+        var x = document.getElementById(fieldId);
+        if (x != undefined) {
+            return x.value;
+        }
+        else
+            return "";
+
+    }
+
+    function getNumberById(fieldId) {
+        var x = document.getElementById(fieldId);
+        if (x != undefined) {
+            try {
+                return x.value;
+            }
+            catch (ex) {
+                return 0;
+            }
+        }
+        else
+            return 0;
+
+    }
+
     function setValueById(fieldId, value) {
         var x = document.getElementById(fieldId);
-        if (x != undefined)
-        {
+        if (x != undefined) {
             console.log(`setValuebyId() setting to ${fieldId} value:${value}`);
             console.log(x);
             x.value = value;
