@@ -14,17 +14,18 @@
     let htmlRecTypeFilter = "";
     let formChanged = false;
     let master;
+    let master2 = [[]];
     let detail;
     let days = "Todos,Dom,Lun,Mar,Mie,Jue,Vie,Sab,Dom".split(",");
     let dow = [
-            [0,"Domingo"], 
-            [1,"Lunes"], 
-            [2,"Martes"], 
-            [3,"Miercoles"], 
-            [4,"Jueves"], 
-            [5,"Viernes"], 
-            [6,"Sabado"], 
-            ]
+        [0, "Domingo"],
+        [1, "Lunes"],
+        [2, "Martes"],
+        [3, "Miercoles"],
+        [4, "Jueves"],
+        [5, "Viernes"],
+        [6, "Sabado"],
+    ]
 
     let selectedDOW = dow;
     let months = "Todos,Ene,Feb,Mar,Abr,May,Jun,Jul,Ago,Sep,Oct,Nov,Dic".split(",");
@@ -32,7 +33,6 @@
     let filterRT = "";
     let filterMes = "";
     let filterDia = "";
-    let master2;
     let fecha = "";
     let year = 2021;
     let desde = 1;
@@ -56,7 +56,7 @@
 
 
 
-   
+
 
 
 
@@ -215,8 +215,8 @@
         return color;
     }
 
-    function getHtmlSelectFromNamedArray(name, caption = "", arr, cssClass="", 
-        idCol=0,valueCol=1,required = false ) {
+    function getHtmlSelectFromNamedArray(name, caption = "", arr, cssClass = "",
+        idCol = 0, valueCol = 1, required = false) {
         let onChange = "";
         let requiredText = "";
 
@@ -229,12 +229,12 @@
             caption = "None";
 
         var options = `<option value="">${caption}</option>`
-        arr.forEach(item =>{
+        arr.forEach(item => {
             options = options + `<option value="${item[idCol]}">${item[valueCol]}</option>`;
         });
 
         onChange = `onChange="onChange_${name}('${name}',this.options[this.selectedIndex].value)"`;
-        
+
         return `<select id="SELECT_${name}" name="SELECT_${name}" 
             class="${cssClass}"
             ${onChange} ${required}>${options}</select>`;
@@ -285,7 +285,8 @@
 
     //https://stackoverflow.com/questions/16096872/how-to-sort-2-dimensional-array-by-column-value
 
-    function sortFunction(a, b) {
+    function sortFunction0(a, b) {
+
         if (a[3] === b[3]) {
             return 0;
         }
@@ -296,6 +297,49 @@
                 return (a[3] < b[3]) ? -1 : 1;
         }
     }
+
+    function buildDate(dt,hora){
+
+        try
+        {
+          let d = dt.split("-");
+          let h = hora.split(":");
+
+            return new Date( 
+                Number(d[0]),
+                Number(d[1])-1,
+                Number(d[2]),
+                Number(h[0]),
+                Number(h[1]),
+                0
+            );
+            
+            
+        }
+        catch(ex)
+        {
+            console.log("buildDate()",ex.message);
+            return new Date(1900,0,1);
+        }
+    }
+
+    function sortFunction(a, b) {
+
+        let date1 = buildDate(a[10],a[11]);
+        let date2 = buildDate(b[10],b[11]);
+
+        if (date1===date2 ) {
+            return 0;
+        }
+        else {
+            if (sortDescending)
+                return (date1 > date2 ) ? -1 : 1;
+            else
+                return (date1<date2) ? -1 : 1;
+        }
+    }
+
+
 
     function buildRecords0(recType, id, defValue = "") {
         result = defValue;
@@ -477,19 +521,16 @@
                     record.unit = rItem[0][4];
                     record.url = rItem[0][9];
                 }
-                else
-                {
-                    let m = master.filter(x=>x[1]==id);
-                    if ( m.length > 0 )
-                    {
+                else {
+                    let m = master.filter(x => x[1] == id);
+                    if (m.length > 0) {
                         record.descr = m[0][12];
                         record.unit = "";
                         record.url = "";
                     }
                 }
             }
-            else if ( recType == "DRUG")
-            {
+            else if (recType == "DRUG") {
                 rItem = DrugItems.arr.filter(x => x[0] == record.itemId);
                 if (rItem.length > 0) {
                     record.descr = rItem[0][1];
@@ -498,8 +539,7 @@
                 }
 
             }
-            else if ( recType == "EXE")
-            {
+            else if (recType == "EXE") {
                 rItem = ExeItems.arr.filter(x => x[0] == record.itemId);
                 if (rItem.length > 0) {
                     record.descr = rItem[0][1];
@@ -510,7 +550,7 @@
             }
             records.push(record);
         });
-        console.log("records",records);
+        console.log("records", records);
         openIds = `${openIds},${id}`;
         renderRecords2(`detail${id}`);
         openId = id;
@@ -560,6 +600,13 @@
         return result;
     }
 
+    function sort(){
+        showDiv("spinner");
+        sortDescending = !sortDescending;
+        renderMaster();
+        hideDiv("spinner");
+    }
+
     function sortArray(arr, col, desc = true) {
         return arr.sort(sortFunction);
 
@@ -577,8 +624,7 @@
 
 
 
-    function drawChart()
-    {
+    function drawChart() {
         let fontSize = "font-size:22px;";
         let color = "color:white;";
         let style = `style="${fontSize} ${color}"`;
@@ -586,21 +632,21 @@
         let totalPerc = 0;
         let count = 0;
 
-        let html =  `<div class="row" ${style}><div class="col-md-2">
+        let html = `<div class="row" ${style}><div class="col-md-2">
             Rango</div>
             <div class="col-md-1" ${style}>
                 Cant</div>
             <div class="col-md-9" ${style}>%</div></div>`;
 
-        GlucLevels.forEach(item=>{
-            count+=item.count;
+        GlucLevels.forEach(item => {
+            count += item.count;
         });
 
-        GlucLevels.forEach(item=>{
+        GlucLevels.forEach(item => {
             let x = (item.count / count) * 100;
             totalPerc += x;
             percText = `${(parseFloat(x).toFixed(0) + "%")}`;
-            style = `style="background-color: ${item.backgroundColor}; width: ${x*10}px"`;
+            style = `style="background-color: ${item.backgroundColor}; width: ${x * 10}px"`;
 
             html = `${html}<div class="row" style="${fontSize} ${color}">`;
 
@@ -612,8 +658,7 @@
                 ${item.count} 
             </div>`
 
-            if ( item.count > 0 )
-            {
+            if (item.count > 0) {
                 html = `${html}
                 <div class="col-md-9">
                 <div ${style}>${percText}</div>
@@ -638,20 +683,23 @@
             </div>             
         </div>`;
 
-      
+
 
         return html;
 
-            
+
     }
-    
-    function buildFiltros(){
+
+    function buildFiltros() {
         let fontSize = "font-size:22px;";
         let color = "color:white;";
         let style = `style="${fontSize} ${color}"`;
 
         let filtros = `
             <div ${style}>
+                <div class="row">
+                    <hr>
+                </div>
                 <div class="row">
                     <p class="text-center">Filtros</p>
                 </div>
@@ -660,11 +708,11 @@
                         Hora
                     </div>
                     <div class="col-md-5 title-font">
-                        <input type="time" class="form-control" id="HORA_DESDE" name="HORA_DESDE" 
+                        <input type="time" class="form-control title-font" id="HORA_DESDE" name="HORA_DESDE" 
                         oninput="onInputField(this.id,this.value)"> 
                     </div>
                     <div class="col-md-5 title-font">
-                        <input type="time" class="form-control"  id="HORA_HASTA" name="HORA_HASTA" 
+                        <input type="time" class="form-control title-font"  id="HORA_HASTA" name="HORA_HASTA" 
                         oninput="onInputField(this.id,this.value)"> 
                     </div>
                 </div>
@@ -674,11 +722,11 @@
                         Gluc
                     </div>
                     <div class="col-md-5 title-font">
-                        <input type="number" class="form-control" id="GLUC_DESDE" name="GLUC_DESDE" 
+                        <input type="number" class="form-control title-font" id="GLUC_DESDE" name="GLUC_DESDE" 
                         oninput="onInputField(this.id,this.value)"> 
                     </div>
                     <div class="col-md-5 title-font">
-                        <input type="number" class="form-control" id="GLUC_HASTA" name="GLUC_HASTA" 
+                        <input type="number" class="form-control title-font" id="GLUC_HASTA" name="GLUC_HASTA" 
                         oninput="onInputField(this.id,this.value)"> 
                     </div>
                 </div>
@@ -697,13 +745,18 @@
                     </div>
                 </div>
                 <div class="row">
-                    <div class="col-md-3">
-                        <button type="button" class="btn btn-secondary btn-block">Filtrar</button>
+                    <div class="col-md-2">
                     </div>
-                    <div class="col-md-9"></div>
+                    <div class="col-md-3">
+                        <button type="button" class="btn btn-secondary btn-block big-font">Filtrar</button>
+                    </div>
+                    <div class="col-md-3">
+                        <button type="button" class="btn btn-secondary btn-block big-font" onclick="sort()">Ordenar Desc/Asc</button>
+                    </div>
+                    <div class="col-md-6"></div>
                 </div>
             </div>`;
-            return filtros;
+        return filtros;
 
     }
     function getGlucTotals() {
@@ -729,7 +782,7 @@
         </div>
         ${buildFiltros()}
         `;
-        
+
 
 
         return totalsHtml;
@@ -737,8 +790,7 @@
 
     //https://gist.github.com/kparms/9486604
     //THANKS!
-    function drawPercentBar(width, percent, color, background)
-    {
+    function drawPercentBar(width, percent, color, background) {
         var barhtml = "";
         var pixels = width * (percent / 100);
         if (!background) { background = "none"; }
@@ -750,7 +802,7 @@
         barhtml += "<div style=\"height: 1.5em; width: " + pixels + "px; background-color: "
             + color + ";\"></div>";
 
-        let textPercent =  `${(parseFloat(percent).toFixed(0) + "%")}`;
+        let textPercent = `${(parseFloat(percent).toFixed(0) + "%")}`;
         barhtml += "<div style=\"position: absolute; text-align: center; padding-top: .25em; width: "
             + width + "px; top: 0; left: 0\">" + textPercent + "</div>";
 
@@ -766,6 +818,9 @@
         let icon = "";
         let iconColor = "";
         let styleTag = "";
+        let fontSize = "font-size:22px;";
+        let color = "color:white;";
+        let style = `style="${fontSize} ${color}"`;
 
         if (master == null) {
             //show error
@@ -778,7 +833,7 @@
         hideDiv("DIVrecType");
         hideDiv("SELECT_RT");
 
-        let row = `
+        let row = `<div style="font-size:32px;">
             <hr>
             <div class="row">
             <div class="col-md-1"></div>
@@ -871,12 +926,13 @@
                     </div>`;
             }
         }
+        row = `${row}</div>`;
         countGluc--;
         let glucTotalsHtml = getGlucTotals();
-        writeInnerHtml("btnSubmit", "Report");
+        writeInnerHtml("btnReport", "Reporte");
         writeInnerHtml("title", glucTotalsHtml);
-        //writeInnerHtml("subTitle", subtitle);
         writeInnerHtml("report", row);
+        setFilterData();
     }
 
 
@@ -1083,8 +1139,8 @@
     function onInputField(id, value) {
         console.log(`onInputField() ${id} ${value}`);
         Data.update(id, value);
-        if ( id == "FECHA_DESDE")
-            setValue("FECHA",value);
+        if (id == "FECHA_DESDE")
+            setValue("FECHA", value);
 
     }
 
@@ -1134,8 +1190,7 @@
         return changed;
     }
 
-    function loadReport()
-    {
+    function loadReport() {
         showDiv("spinner");
         subtitle = `<p class="text-into text-center">Desde: ${Data.get("FECHA_DESDE")} Hasta: ${Data.get("FECHA_HASTA")}</p>`
         google.script.run.withFailureHandler(failureHandler)
@@ -1248,7 +1303,7 @@
 
     function processResponseReport(json) {
         response = JSON.parse(json);
-        
+
         console.log("Response received from Server. processResponseReport():", response);
         if (response.result == 200) {
             for (var i = 0; i < response.html.length; i++) {
@@ -1285,14 +1340,13 @@
 
     }
 
-    function setValueAndData(fieldId, value){
+    function setValueAndData(fieldId, value) {
         let x = document.getElementById(fieldId);
-        if ( x != undefined)
-        {
+        if (x != undefined) {
             x.value = value;
         }
-        else console.log(  `setValueANdData() can't find ${fieldId} value:${value}`);
-        Data.update(fieldId,value);
+        else console.log(`setValueANdData() can't find ${fieldId} value:${value}`);
+        Data.update(fieldId, value);
     }
 
     function setReportDates() {
@@ -1303,26 +1357,64 @@
 
         dt = new Date();
         let fecha = getDateYMD(dt);
-        setValueAndData("FECHA_HASTA",fecha);
+        setValueAndData("FECHA_HASTA", fecha);
 
-        let dt1 = new Date(dt.getFullYear()-1, dt.getMonth(), dt.getDate());
+        let dt1 = new Date(dt.getFullYear(), 0, 1);
         fecha = getDateYMD(dt1);
-        setValueAndData("FECHA_DESDE",fecha);
+        setValueAndData("FECHA_DESDE", fecha);
 
-        setValueAndData("HORA_DESDE","00:00");
-        setValueAndData("HORA_HASTA","11:59");
-        setValueAndData("GLUC_DESDE","0");
-        setValueAndData("GLUC_HASTA","300");
+        setValueAndData("HORA_DESDE", "00:00");
+        setValueAndData("HORA_HASTA", "11:59");
+        setValueAndData("GLUC_DESDE", "0");
+        setValueAndData("GLUC_HASTA", "300");
 
         minutes1 = 0;
-        minutes2 = 12*60;
+        minutes2 = 12 * 60;
 
 
     }
 
-    function clearLocalStorage()
-    {
+    function setReportDates() {
+
+        requiredFields = "FECHA_DESDE,FECHA_HASTA";
+        initializeData(requiredFields);
+        hideDiv("submitArea");
+
+        dt = new Date();
+        let fecha = getDateYMD(dt);
+        setValueAndData("FECHA_HASTA", fecha);
+
+        let dt1 = new Date(dt.getFullYear(), 0, 1);
+        fecha = getDateYMD(dt1);
+        setValueAndData("FECHA_DESDE", fecha);
+
+        minutes1 = 0;
+        minutes2 = 12 * 60;
+
+
+    }
+
+    function setFilterData() {
+
+        requiredFields = "HORA_DESDE,HORA_HASTA,GLUC_DESDE,GLUC_HASTA,DIA_SEMANA";
+        initializeData(requiredFields);
+        hideDiv("submitArea");
+
+        setValueAndData("HORA_DESDE", "00:00");
+        setValueAndData("HORA_HASTA", "11:59");
+        setValueAndData("GLUC_DESDE", "0");
+        setValueAndData("GLUC_HASTA", "300");
+
+        minutes1 = 0;
+        minutes2 = 12 * 60;
+
+
+    }
+
+    function clearLocalStorage() {
         localStorage.clear();
+        overrideLocalStorage = true;
+        showMessage("Datos locales han sido brorrados");
     }
 
     function generalReport() {
@@ -1333,29 +1425,29 @@
         hideDiv("adminMenu");
         hideDiv("DIVfechaHora");
         hideDiv("DIVrecType");
-        showDiv("reportArea");
         hideDiv("submitArea");
+        hideDiv("rows");
         recType = "REP";
         writeInnerHtml("title", "Reporte por Rango de Fechas");
 
         html = localStorage.getItem("content_REP");
         if (html == null)
             html = "";
-        
+
         //todo: if entry is not found is returning as if it exists
-        if ( html.lenght == 0 || overrideLocalStorage )
-        {
+        if (html.lenght == 0 || overrideLocalStorage) {
             console.log("loading reprot from server");
             overrideLocalStorage = false;
             google.script.run.withFailureHandler(failureHandler)
-            .withSuccessHandler(processResponseLoadReportForm)
-            .getForm("", "report");
+                .withSuccessHandler(processResponseLoadReportForm)
+                .getForm("", "report");
         }
-        else
-        {
-            console.log("generalReport() laoding from localstorage ",html);
-            writeInnerHtml("content",html);
+        else {
+            console.log("generalReport() laoding from localstorage ", html);
+            writeInnerHtml("content", html);
             setReportDates();
+            showDiv("reportArea");
+
         }
         hideDiv("spinner");
 
@@ -1366,50 +1458,49 @@
         editMode = true;
         setReportDates();
 
-        let fecha= getValue("FECHA");
+        let fecha = getValue("FECHA");
         let dt = getDateFromYMD(fecha);
-        let dtDesde = new Date(dt.getFullYear(),0,1);
-        Data.update("FECHA_DESDE",getDateYMD(dtDesde));
+        let dtDesde = new Date(dt.getFullYear(), 0, 1);
+        Data.update("FECHA_DESDE", getDateYMD(dtDesde));
 
-        let dtHasta = new Date(dt.getFullYear(),11,31);
-        
-        
+        let dtHasta = new Date(dt.getFullYear(), 11, 31);
+
+
         Data.update("FECHA_HASTA", getDateYMD(dtHasta));
 
         action = "Report";
-        console.log("reportYear",Data);
+        console.log("reportYear", Data);
 
         subtitle = `<p class="text-into text-center">Desde: ${Data.get("FECHA_DESDE")} Hasta: ${Data.get("FECHA_HASTA")}</p>`
 
 
         google.script.run.withFailureHandler(failureHandler)
-                    .withSuccessHandler(processResponseReport)
-                    .report(Data);
+            .withSuccessHandler(processResponseReport)
+            .report(Data);
 
     }
 
-    function enableMenu(enable, disable){
+    function enableMenu(enable, disable) {
         let d = disable.split(",");
-        d.forEach(item=>{
+        d.forEach(item => {
             hideDiv(item);
         })
         showDiv(enable);
     }
-    function reportMes()
-    {
+    function reportMes() {
         showDiv("spinner");
         editMode = true;
         setReportDates();
-        let fecha= getValue("FECHA");
-        let dt = getDateFromYMD(fecha); 
-        let dtDesde = new Date(dt.getFullYear(),dt.getMonth(),1);
-        Data.update("FECHA_DESDE",getDateYMD(dtDesde));
+        let fecha = getValue("FECHA");
+        let dt = getDateFromYMD(fecha);
+        let dtDesde = new Date(dt.getFullYear(), dt.getMonth(), 1);
+        Data.update("FECHA_DESDE", getDateYMD(dtDesde));
 
         let dtHasta = new Date();
-        if ( dt.getMonth() <11 )
-            dtHasta = new Date(dt.getFullYear(),dt.getMonth()+1,1);
-        else 
-            dtHasta = new Date(dt.getFullYear()+1,0,1);
+        if (dt.getMonth() < 11)
+            dtHasta = new Date(dt.getFullYear(), dt.getMonth() + 1, 1);
+        else
+            dtHasta = new Date(dt.getFullYear() + 1, 0, 1);
 
         dtHasta.setDate(dtHasta.getDate() - 1);
 
@@ -1417,13 +1508,13 @@
         Data.update("FECHA_HASTA", getDateYMD(dtHasta));
 
         action = "Report";
-        console.log("reportMes",Data);
+        console.log("reportMes", Data);
         subtitle = `<p class="text-into text-center">Desde: ${Data.get("FECHA_DESDE")} Hasta: ${Data.get("FECHA_HASTA")}</p>`
 
 
         google.script.run.withFailureHandler(failureHandler)
-                    .withSuccessHandler(processResponseReport)
-                    .report(Data);
+            .withSuccessHandler(processResponseReport)
+            .report(Data);
 
     }
 
@@ -1487,6 +1578,8 @@
     function processResponseLoadReportForm(json) {
         processResponse(json);
         setReportDates();
+        showDiv("reportArea");
+
     }
 
 
@@ -1750,19 +1843,17 @@
 
     //************************************ event handlers end ***********************************
 
-    function close_DOW(id, obj )
-    {
+    function close_DOW(id, obj) {
         obj.style.display = "none";
-        selectedDOW = selectedDOW.filter(x=>x[0]!=id);
+        selectedDOW = selectedDOW.filter(x => x[0] != id);
     }
-    
-    function getMultiSelect(name,arr,idCol=0,valueCol=1)
-    {
+
+    function getMultiSelect(name, arr, idCol = 0, valueCol = 1) {
         console.log("getMultiSeelect()");
         console.log(arr);
         let rows = ``;
-        arr.forEach(r=>{
-            rows= `${rows}
+        arr.forEach(r => {
+            rows = `${rows}
             <li>${r[valueCol]}<span class="close" onclick="close_${name}(${r[idCol]},this)">x</span></li>`
         })
         return `<ul id=${name}>${rows}</up
@@ -1774,10 +1865,10 @@
     console.log("js_index onLoad")
     window.addEventListener('load', initialize);
     window.onerror = function myErrorHandler(errorMsg, url, lineNumber) {
-        console.log("unahndled error:",errorMsg);
+        console.log("unahndled error:", errorMsg);
         console.log(url);
         console.log(lineNumber);
-    return false;
-}
+        return false;
+    }
 
 </script>

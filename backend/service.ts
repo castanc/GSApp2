@@ -687,6 +687,8 @@ export class Service {
             //set format column to string
             var column = ss.getSheetByName("Master").getRange("L1:L");
             column.setNumberFormat("@");
+            column = ss.getSheetByName("Master").getRange("K1:K");
+            column.setNumberFormat("@");
 
             if (ss != undefined) {
                 let grid = Utils.getData(ss, "Master").filter(x => (x[3] >= days1 && x[3] <= days2);

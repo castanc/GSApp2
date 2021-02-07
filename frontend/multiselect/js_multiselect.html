@@ -1,0 +1,31 @@
+<script>
+    
+    let p = 
+    {
+        Title: "", 
+        TitleId: "",
+        Data: [],
+        Name: "",
+        colId: 0,
+        colValue: 1,
+        colBackground: null,
+        colColor: null,
+        colStyle: null,
+        colColorSelected: null,
+    }
+    function getMultiSelect(p)
+    {
+        if ( p.Title.length> 0  && p.TitleId.length > 0 )
+        {
+            writeInnerHtml(p.TitleId,p.Title);
+        }
+        let rowsUnselected = "";
+        let rowsSelected = "";
+        let html = `
+        <div id="selected">
+        </div>
+        <div id="unselected">
+        </div>`;
+
+    }
+</script>
