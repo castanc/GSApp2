@@ -12,6 +12,16 @@ class KeyValuePair {
 }
 exports.KeyValuePair = KeyValuePair;
 
+exports.SelectableItem = void 0;
+class SelectableItem {
+    constructor(key, value, icon) {
+        this.key = key;
+        this.value = value;
+        this.selected = false;
+        this.icon = icon
+    }
+}
+exports.SelectableItem = SelectableItem;
 
 exports.KVPCollection = void 0;
 class KVPCollection {

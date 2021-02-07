@@ -1,1 +1,1 @@
-clasp push <y.txt
+clasp push -f

@@ -16,6 +16,19 @@
 
     }
 
+    function getDateYMD(dt = null, sep = "-") {
+        if (dt == null)
+            dt = new Date();
+
+        var m = padLeft(dt.getMonth() + 1, 10, '0');
+        var d = padLeft(dt.getDate(), 10, '0');
+        var fecha = `${dt.getFullYear()}${sep}${m}${sep}${d}`;
+        //var h = padLeft(dt.getHours(), 10, '0');
+        //var mi = padLeft(dt.getMinutes(), 10, '0');
+
+        return fecha;
+    }
+    
     function getDateFromYMD(dtStr, sep = "-") {
         let dt = null;
         let fp = dtStr.split(" ");
@@ -73,6 +86,21 @@
         var x = document.forms[form][fieldId];
         if (x != undefined)
             x.value = value;
+        else
+            console.log(`setValue() can't find ${fieldId} in form ${form}. value:${value}`);
+
+    }
+
+    function setValueById(fieldId, value) {
+        var x = document.getElementById(fieldId);
+        if (x != undefined)
+        {
+            console.log(`setValuebyId() setting to ${fieldId} value:${value}`);
+            console.log(x);
+            x.value = value;
+        }
+        else
+            console.log(`setValuebyId() can't find ${fieldId} value:${value}`);
 
     }
 
@@ -91,10 +119,9 @@
     }
 
 
-    function getHMFromMinutes(min)
-    {
+    function getHMFromMinutes(min) {
         let h = Math.trunc(min / 60);
-        let m = min/60 - h;
+        let m = min / 60 - h;
         m = Math.trunc(m * 60);
         return `${h}:${m}`;
     }
@@ -201,7 +228,6 @@
         }
 
 
-      
     }
 
 

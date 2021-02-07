@@ -683,6 +683,11 @@ export class Service {
         for (var i = dt1.getFullYear(); i <= dt2.getFullYear(); i++) {
             let fileName = `${i}_data`;
             let ss = Utils.openSpreadSheet(fileName, this.folder);
+
+            //set format column to string
+            var column = ss.getSheetByName("Master").getRange("L1:L");
+            column.setNumberFormat("@");
+
             if (ss != undefined) {
                 let grid = Utils.getData(ss, "Master").filter(x => (x[3] >= days1 && x[3] <= days2);
 
@@ -768,7 +773,7 @@ export class Service {
         data2.update("Y", Y.toString());
         data2.update("DOW", DOW.toString());
 
-      
+
 
 
         let v = data2.getColValues().split(",");
