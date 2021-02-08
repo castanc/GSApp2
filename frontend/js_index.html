@@ -619,7 +619,7 @@
     function filtrar(){
         showDiv("spinner");
         horaDesde = Data.get("HORA_DESDE");
-        horaHasta = Data.get("HORA_HASTA")
+        horaHasta = Data.get("HORA_HASTA");
         minutes1 = getMinutes(horaDesde);
         minutes2 = getMinutes(horaHasta);
         let x  = Data.getNumber("GLUC_DESDE");
@@ -1373,7 +1373,7 @@
 
     function setReportDates() {
 
-        requiredFields = "FECHA_DESDE,FECHA_HASTA";
+        requiredFields = "FECHA_DESDE,FECHA_HASTA,HORA_DESE,HORA_HASTA,GLUC_DESDE,GLUC_HAST,REC_FILTER,DAY_FILTER";
         initializeData(requiredFields);
         hideDiv("submitArea");
 
@@ -1392,8 +1392,8 @@
 
     function setFilterData() {
 
-        requiredFields = "HORA_DESDE,HORA_HASTA,GLUC_DESDE,GLUC_HASTA,DIA_SEMANA";
-        initializeData(requiredFields);
+        //requiredFields = "HORA_DESDE,HORA_HASTA,GLUC_DESDE,GLUC_HASTA,DIA_SEMANA";
+        //initializeData(requiredFields);
         hideDiv("submitArea");
 
         setValueAndData("HORA_DESDE", horaDesde);
@@ -1401,16 +1401,24 @@
         setValueAndData("GLUC_DESDE", glucMin.toString());
         setValueAndData("GLUC_HASTA", glucMax.toString());
 
-        minutes1 = 0;
-        minutes2 = 12 * 60;
-
-
     }
 
     function clearLocalStorage() {
         localStorage.clear();
         overrideLocalStorage = true;
+        newRecord();
         showMessage("Datos locales han sido brorrados");
+    }
+
+    function processLogResponse(json)
+    {
+
+    }
+    async function logServer(msg,data)
+    {
+        google.script.run.withFailureHandler(failureHandler)
+                .withSuccessHandler(processLogResponse)
+                .log(msg,data);        
     }
 
     function generalReport() {
@@ -1427,11 +1435,14 @@
         writeInnerHtml("title", "Reporte por Rango de Fechas");
 
         html = localStorage.getItem("content_REP");
-        if (html == null)
+        if (html == null || html == undefined)
             html = "";
+
 
         //todo: if entry is not found is returning as if it exists
         if (html.lenght == 0 || overrideLocalStorage) {
+            logServer("getting report html from","server");
+            showMessage("Loading form from server");
             console.log("loading reprot from server");
             overrideLocalStorage = false;
             google.script.run.withFailureHandler(failureHandler)
@@ -1439,9 +1450,10 @@
                 .getForm("", "report");
         }
         else {
-            console.log("generalReport() laoding from localstorage ", html);
+            logServer("report html from local storage",html);
             writeInnerHtml("content", html);
             setReportDates();
+            setFilterData();
             showDiv("reportArea");
 
         }
@@ -1574,7 +1586,9 @@
     function processResponseLoadReportForm(json) {
         processResponse(json);
         setReportDates();
+        setFilterData();
         showDiv("reportArea");
+        disableButtons(false);
 
     }
 

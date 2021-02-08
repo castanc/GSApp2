@@ -59,6 +59,11 @@ function testGetId()
 }
 
 
+function log(msg, data)
+{
+    SysLog.log(0,msg,"code.ts log()",data);
+}
+
 function edit(year)
 {
     
