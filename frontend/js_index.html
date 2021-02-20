@@ -302,44 +302,42 @@
         }
     }
 
-    function buildDate(dt,hora){
+    function buildDate(dt, hora) {
 
-        try
-        {
-          let d = dt.split("-");
-          let h = hora.split(":");
+        try {
+            let d = dt.split("-");
+            let h = hora.split(":");
 
-            return new Date( 
+            return new Date(
                 Number(d[0]),
-                Number(d[1])-1,
+                Number(d[1]) - 1,
                 Number(d[2]),
                 Number(h[0]),
                 Number(h[1]),
                 0
             );
-            
-            
+
+
         }
-        catch(ex)
-        {
-            console.log("buildDate()",ex.message);
-            return new Date(1900,0,1);
+        catch (ex) {
+            console.log("buildDate()", ex.message);
+            return new Date(1900, 0, 1);
         }
     }
 
     function sortFunction(a, b) {
 
-        let date1 = buildDate(a[10],a[11]);
-        let date2 = buildDate(b[10],b[11]);
+        let date1 = buildDate(a[10], a[11]);
+        let date2 = buildDate(b[10], b[11]);
 
-        if (date1===date2 ) {
+        if (date1 === date2) {
             return 0;
         }
         else {
             if (sortDescending)
-                return (date1 > date2 ) ? -1 : 1;
+                return (date1 > date2) ? -1 : 1;
             else
-                return (date1<date2) ? -1 : 1;
+                return (date1 < date2) ? -1 : 1;
         }
     }
 
@@ -494,6 +492,10 @@
 
 
 
+    function openGlucDetail(recType,id,day)
+    {
+        showDiv(`detail${id}`);
+    }
 
 
     function openDetail(recType, id) {
@@ -604,7 +606,7 @@
         return result;
     }
 
-    function sort(){
+    function sort() {
         showDiv("spinner");
         sortDescending = !sortDescending;
         renderMaster();
@@ -616,17 +618,17 @@
 
     }
 
-    function filtrar(){
+    function filtrar() {
         showDiv("spinner");
         horaDesde = Data.get("HORA_DESDE");
         horaHasta = Data.get("HORA_HASTA");
         minutes1 = getMinutes(horaDesde);
         minutes2 = getMinutes(horaHasta);
-        let x  = Data.getNumber("GLUC_DESDE");
+        let x = Data.getNumber("GLUC_DESDE");
         glucMin = x;
-        x =  Data.getNumber("GLUC_HASTA");
+        x = Data.getNumber("GLUC_HASTA");
         glucMax = x;
-        console.log("Data",Data);
+        console.log("Data", Data);
         console.log(`filtrar() ${horaDesde} ${horaHasta} ${glucMin} ${glucMax},x:${x}`);
         renderMaster();
         hideDiv("spinner");
@@ -832,7 +834,7 @@
     }
 
 
-    function renderMaster() {
+    function renderMaster0() {
         let recType = "";
         let classText = "";
         let icon = "";
@@ -956,6 +958,227 @@
         writeInnerHtml("report", row);
         setFilterData();
     }
+
+    function buildEmptyRow(recType, id, iconTag, styleTag, divRecords) {
+        return `<div class="row"  onclick="openDetail('${recType}',-1)">
+                        <div class="col-md-1">
+                            ${iconTag}
+                        </div>
+
+                        <div class="col-md-1" ${styleTag}>
+                        </div>
+                        <div class="col-md-2" ${styleTag}>
+                        </div>
+                        <div class="col-md-2" ${styleTag} >
+                        </div>
+                        <div class="col-md-6" ${styleTag} >
+                            ${divRecords}
+                        </div>
+                    </div>
+                    <div id="detail${id}" class="row">
+                    </div>`
+    }
+
+    function buildRow(iconTag, styleTag, divRecords, master2) {
+        styleTag = "";
+        return `<div class="row"  onclick="openDetail('${master2[9]}',${master2[1]})">
+                        <div class="col-md-1">
+                            ${iconTag}
+                        </div>
+
+                        <div class="col-md-1" ${styleTag}>
+                            ${days[master2[8] + 1]} 
+                        </div>
+                        <div class="col-md-2" ${styleTag}>
+                        ${months[master2[6]]}-${master2[7]}
+                        </div>
+                        <div class="col-md-2" ${styleTag} >
+                        ${master2[11]}
+                        </div>
+                        <div id="data${master2[1]}" class="col-md-6" ${styleTag}>
+                            ${divRecords}
+                        </div>
+                    </div>
+                    <div id="detail${master2[1]}" class="row">
+                    </div>`
+    }
+
+
+    function buildGlucRow(lastDay,iconTag, styleTag, dayRows, master2) {
+        styleTag = "";
+        return `<div class="row"  onclick="openGlucDetail('${master2[9]}',${master2[1]},${lastDay})">
+                        <div class="col-md-1">
+                            ${iconTag}
+                        </div>
+
+                        <div class="col-md-1" ${styleTag}>
+                            ${days[master2[8] + 1]} 
+                        </div>
+                        <div class="col-md-2" ${styleTag}>
+                        ${months[master2[6]]}-${master2[7]}
+                        </div>
+                        <div class="col-md-2" ${styleTag} >
+                        ${master2[11]}
+                        </div>
+                        <div class="col-md-6" ${styleTag} >
+                        ${master2[12]}
+                        </div>
+                    </div>
+                    <div id="detail${master2[1]}" style="display:none;" class="row">
+                        ${dayRows}
+                    </div>`
+    }
+
+
+    function renderMaster() {
+        let recType = "";
+        let classText = "";
+        let icon = "";
+        let iconTag = "";
+        let iconColor = "";
+        let styleTag = "";
+        let fontSize = "font-size:22px;";
+        let color = "color:white;";
+        let style = `style="${fontSize} ${color}"`;
+        let lastDay = 0;
+        let glucRow = "";
+        let dayRows = "";
+        let rti;
+        let value;
+        let glucRowId = -1;
+        let idNoMeasure = 99000;
+
+        if (master == null) {
+            //show error
+            return;
+        }
+        if (master.lenght < 1)
+            return;
+
+        showDiv("content");
+        hideDiv("DIVrecType");
+        hideDiv("SELECT_RT");
+
+        let row = `<div style="font-size:32px;">
+            <hr>
+            <div class="row">
+            <div class="col-md-1"></div>
+            <div class="col-md-1">Dia</div>
+            <div class="col-md-2">Fecha</div>
+            <div class="col-md-2">Hora</div>
+            <div class="col-md-6">Data</div>
+            </div>
+            `;
+
+        if (master.length > 0) {
+
+            let master2;
+            if (filterRT != "") {
+                master2 = master.filter(x => x[9] = filterRT);
+                master2 = sortArray(master2, 3);
+            }
+            else {
+                master2 = sortArray(master, 3);
+            }
+
+            GlucLevels.forEach(item => {
+                item.count = 0;
+                item.acumulado = 0;
+            })
+
+            let divRecords = "";
+            countGluc = 0;
+            console.log("renderMaster");
+            console.log(master2);
+            try {
+                for (var i = 0; i < master2.length; i++) {
+                    if (master2[i].length < 9)
+                        continue;
+
+                    if (Math.trunc([i][3]) != lastDay) {
+                        lastDay = Math.trunc(master2[i][3]);
+                        glucRow = "";
+                        dayRows = "";
+                        glucRowId = -1;
+                        while (i < master2.length && Math.trunc(master2[i][3]) == lastDay) {
+                            rti = RecTypes.filter(x => x.name == master2[i][9]);
+                            icon = "";
+                            iconColor = "";
+                            styleTag = `style="${fontSize}"`;
+
+                            if (rti.length > 0) {
+                                icon = rti[0].icon;
+                                iconColor = `color:${rti[0].textColor};`;
+                                styleTag = `style="${fontSize} ${iconColor}"`;
+                            }
+
+                            iconTag = `<span style="font-size: 40px; ${iconColor}">
+                                    <i class="${icon}"></i>
+                                </span>`;
+
+                            divRecords = buildRecords(master2[i][9], master2[i][1], master2[i][12]);
+
+                            if (master2[i][9] == "GLUC" ) {
+                                countGluc++;
+                                if ( glucRowId < 0 )
+                                    glucRowId = i;
+                                else
+                                    dayRows = `${dayRows} ${buildRow(iconTag, styleTag, divRecords, master2[i])}`;
+                            }
+                            else
+                                dayRows = `${dayRows} ${buildRow(iconTag, styleTag, divRecords, master2[i])}`;
+                            i++;
+                        }
+                        rti = RecTypes.filter(x => x.name == "GLUC");
+                        icon = "";
+                        iconColor = "";
+                        styleTag = `style="${fontSize}"`;
+
+                        if (rti.length > 0) {
+                            icon = rti[0].icon;
+                            iconColor = `color:${rti[0].textColor};`;
+                            styleTag = `style="${fontSize} ${iconColor}"`;
+                        }
+
+                        if (glucRowId < 0) {
+                            //89	7292		44164	644	2021	1	1	5	GLUC	2021-1-1	10:44	175
+                            let row = [1,idNoMeasure,lastDay,0,1900,1,1,5,"GLUC","1900-1-1","00:00",0]
+                            idNoMeasure++;
+                            styleTag = `style="${fontSize}`;
+                            glucRow = buildGlucRow(lastDay,iconTag, styleTag, dayRows, row);
+                        }
+                        else
+                        {
+                            console.log(`gluc row ${glucRowId} ${master2[i][1]}`);
+                            let gl = GlucLevels.filter(x => value >= x.min && value < x.max);
+                                if (gl.length > 0) {
+                                    styleTag = `style="${fontSize} background-color:${gl[0].backgroundColor};"`;
+                                    gl[0].count++;
+                                }
+
+                            glucRow = buildGlucRow(lastDay,iconTag, styleTag, dayRows, master2[glucRowId]);
+                        }
+
+                        row = `${row}${glucRow}`;
+                    }
+                }
+            }
+            catch (ex) {
+                console.log(ex);
+                console.log(ex.message);
+                console.log(ex.stack);
+            }
+        }
+        row = `${row}</div>`;
+        localStorage.setItem("htmLReport",row);
+        countGluc--;
+        let glucTotalsHtml = getGlucTotals();
+        writeInnerHtml("btnReport", "Reporte");
+        writeInnerHtml("title", glucTotalsHtml);
+        writeInnerHtml("report", row);
+        setFilterData();
+    }
+
 
 
 
@@ -1410,15 +1633,13 @@
         showMessage("Datos locales han sido brorrados");
     }
 
-    function processLogResponse(json)
-    {
+    function processLogResponse(json) {
 
     }
-    async function logServer(msg,data)
-    {
+    async function logServer(msg, data) {
         google.script.run.withFailureHandler(failureHandler)
-                .withSuccessHandler(processLogResponse)
-                .log(msg,data);        
+            .withSuccessHandler(processLogResponse)
+            .log(msg, data);
     }
 
     function generalReport() {
@@ -1441,7 +1662,7 @@
 
         //todo: if entry is not found is returning as if it exists
         if (html.lenght == 0 || overrideLocalStorage) {
-            logServer("getting report html from","server");
+            logServer("getting report html from", "server");
             showMessage("Loading form from server");
             console.log("loading reprot from server");
             overrideLocalStorage = false;
@@ -1450,7 +1671,7 @@
                 .getForm("", "report");
         }
         else {
-            logServer("report html from local storage",html);
+            logServer("report html from local storage", html);
             writeInnerHtml("content", html);
             setReportDates();
             setFilterData();
