@@ -1085,13 +1085,15 @@
                             divRecords = buildRecords(master2[i][9], master2[i][1], master2[i][12]);
 
                             if (master2[i][9] == "GLUC") {
-                                countGluc++;
-                                glucDay++;
 
                                 gl = GlucLevels.filter(x => master2[i][12] >= x.min && master2[i][12] < x.max);
-                                if (gl.length > 0)
+                                if (gl.length > 0 && glucDay == 0 )
+                                {
                                     gl[0].count++;
+                                    countGluc++;
+                                }
 
+                                glucDay++;
                                 if (glucRowId < 0)
                                     glucRowId = i;
                                 else {
@@ -1100,7 +1102,7 @@
                                         styleTag = `style="${fontSize} background-color:${gl[0].backgroundColor}; color:white; width: ${master2[i][12] * 3}px;"`;
                                     }
                                     dayRows = `${dayRows}
-                                    ${buildGlucRow(iconTag, styleTag, iconColor, divRecords, master2[i])}`;
+                                    ${buildRow(iconTag, styleTag, iconColor, divRecords, master2[i])}`;
                                 }
                             }
                             else
