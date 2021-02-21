@@ -328,17 +328,17 @@
 
     function sortFunction(a, b) {
 
-        let date1 = buildDate(a[10], a[11]);
-        let date2 = buildDate(b[10], b[11]);
+        let va = Math.trunc(a[3]) * 24 * 60 + a[4];
+        let vb = Math.trunc(b[3]) * 24 * 60 + b[4];
 
-        if (date1 === date2) {
+        if (va == vb) {
             return 0;
         }
         else {
             if (sortDescending)
-                return (date1 > date2) ? -1 : 1;
+                return (va > vb) ? -1 : 1;
             else
-                return (date1 < date2) ? -1 : 1;
+                return (va < vb) ? -1 : 1;
         }
     }
 
@@ -495,7 +495,7 @@
 
     function openGlucDetail(recType, id, day) {
         if (lastDay == day)
-            hideDiv(`details${id}`)
+            hideDiv(`detail${id}`)
         else
             showDiv(`detail${id}`);
         lastDay = day;
@@ -506,16 +506,15 @@
         if (",FOOD,EXE,DRUG,".indexOf(recType) < 0)
             return;
 
-        if (openId > 0) {
-            hideDiv(`detail${openId}`);
+        if (openId == id) {
+            hideDiv(`detail${id}`);
             openId = 0;
-        }
-
-        if (openIds.indexOf(`,${id},`) > 0) {
-            showDiv(`detail${id}`);
-            openId = id;
             return;
         }
+        else
+            showDiv(`detail${id}`)
+        openId = id;
+
         records = [];
         let details = detail.filter(x => x[1] == id);
         details.forEach(det => {
@@ -613,6 +612,7 @@
     function sort() {
         showDiv("spinner");
         sortDescending = !sortDescending;
+        lastDay = 0;
         renderMaster();
         hideDiv("spinner");
     }
@@ -634,6 +634,7 @@
         glucMax = x;
         console.log("Data", Data);
         console.log(`filtrar() ${horaDesde} ${horaHasta} ${glucMin} ${glucMax},x:${x}`);
+        lastDay = 0;
         renderMaster();
         hideDiv("spinner");
     }
@@ -806,10 +807,9 @@
                 ${chart}
             </div>
         </div>
-        ${buildFiltros()}
         `;
 
-
+        //todo: call to buidlFiltros removed fromt empalte
 
         return totalsHtml;
     }
@@ -964,54 +964,35 @@
     }
 
     function buildRow(iconTag, styleTag, iconColor, divRecords, master2) {
-        let styleColor = `style="${iconColor}`;
+        let styleColor = `style="${iconColor}"`;
         return `<div class="row"  onclick="openDetail('${master2[9]}',${master2[1]})">
-                        <div class="col-md-1">
-                            ${iconTag}
-                        </div>
-
-                        <div class="col-md-1" ${styleColor}>
-                            ${days[master2[8] + 1]} 
-                        </div>
-                        <div class="col-md-2" ${styleColor}>
-                        ${months[master2[6]]}-${master2[7]}
-                        </div>
-                        <div class="col-md-2" ${styleColor} >
-                        ${master2[11]}
-                        </div>
-                        <div id="data${master2[1]}" class="col-md-6" ${styleColor}>
-                            ${divRecords}
-                        </div>
+                        <div class="col-md-1"></div>
+                        <div class="col-md-1" ${styleColor}>${iconTag}</div>
+                        <div class="col-md-2" ${styleColor}></div>
+                        <div class="col-md-2" ${styleColor}>${master2[11]}</div>
+                        <div id="data${master2[1]}" class="col-md-6" ${styleColor}>${divRecords}</div>
                     </div>
-                    <div id="detail${master2[1]}" class="row">
-                    </div>`
+                    <div id="detail${master2[1]}" class="row"></div>`;
     }
 
 
     function buildGlucRow(lastDay, iconTag, styleTag, iconColor, dayRows, master2) {
-        let styleColor = `style="color:${iconColor}"`;
-        return `<div class="row"  onclick="openGlucDetail('${master2[9]}',${master2[1]},${lastDay})">
-                        <div class="col-md-1">
-                            ${iconTag}
-                        </div>
+        let styleColor = `style="${iconColor}"`;
+        let divDays = "";
+        let onclick = "";
+        if (dayRows.length > 0) {
+            onclick = `onclick="openGlucDetail('${master2[9]}',${master2[1]},${lastDay})"`;
+            divDays = `<div id="detail${master2[1]}" style="display:none;" class="row">${dayRows}<hr></div>`;
+        }
 
-                        <div class="col-md-1" ${styleColor}>
-                            ${days[master2[8] + 1]} 
-                        </div>
-                        <div class="col-md-2" ${styleColor}>
-                        ${months[master2[6]]}-${master2[7]}
-                        </div>
-                        <div class="col-md-2" ${styleColor} >
-                        ${master2[11]}
-                        </div>
-                        <div class="col-md-6" ${styleTag} >
-                        ${master2[12]} 
-                        </div>
+        return `<div class="row" ${onclick}>
+                        <div class="col-md-1">${iconTag}</div>
+                        <div class="col-md-1" ${styleColor}>${days[master2[8] + 1]}</div>
+                        <div class="col-md-2" ${styleColor}>${months[master2[6]]}-${master2[7]}</div>
+                        <div class="col-md-2" ${styleColor}>${master2[11]}</div>
+                        <div class="col-md-6"><div ${styleTag}>${master2[12]}</div></div>
                     </div>
-                    <div id="detail${master2[1]}" style="display:none;" class="row">
-                        ${dayRows}
-                    </div>
-                    <div class="row"></div><hr>`
+                    ${divDays}`;
     }
 
 
@@ -1032,6 +1013,7 @@
         let glucRowId = -1;
         let idNoMeasure = 99000;
         let gl;
+        let glucDay = 0;
 
         if (master == null) {
             //show error
@@ -1044,7 +1026,7 @@
         hideDiv("DIVrecType");
         hideDiv("SELECT_RT");
 
-        let row = `<div style="font-size:32px;">
+        let row = `<div style="${fontSize}">
             <hr>
             <div class="row">
             <div class="col-md-1"></div>
@@ -1084,7 +1066,9 @@
                         glucRow = "";
                         dayRows = "";
                         glucRowId = -1;
+                        glucDay = 0;
                         while (i < master2.length && Math.trunc(master2[i][3]) == lastDay) {
+
                             rti = RecTypes.filter(x => x.name == master2[i][9]);
                             icon = "";
                             iconColor = "";
@@ -1096,21 +1080,28 @@
                                 styleTag = `style="${fontSize} ${iconColor}"`;
                             }
 
-                            iconTag = `<span style="font-size: 40px; ${iconColor}"><i class="${icon}"></i></span>`;
+                            iconTag = `<span style="font-size: 32px; ${iconColor}"><i class="${icon}"></i></span>`;
 
                             divRecords = buildRecords(master2[i][9], master2[i][1], master2[i][12]);
 
                             if (master2[i][9] == "GLUC") {
                                 countGluc++;
+                                glucDay++;
+
                                 gl = GlucLevels.filter(x => master2[i][12] >= x.min && master2[i][12] < x.max);
-                                if (gl.length > 0) {
+                                if (gl.length > 0)
                                     gl[0].count++;
-                                }
+
                                 if (glucRowId < 0)
                                     glucRowId = i;
-                                else
+                                else {
+                                    gl = GlucLevels.filter(x => master2[i][12] >= x.min && master2[i][12] < x.max);
+                                    if (gl.length > 0) {
+                                        styleTag = `style="${fontSize} background-color:${gl[0].backgroundColor}; color:white; width: ${master2[i][12] * 3}px;"`;
+                                    }
                                     dayRows = `${dayRows}
-                                    ${buildRow(iconTag, styleTag, icoNColor, divRecords, master2[i])}`;
+                                    ${buildGlucRow(iconTag, styleTag, iconColor, divRecords, master2[i])}`;
+                                }
                             }
                             else
                                 dayRows = `${dayRows}
@@ -1128,31 +1119,30 @@
                             styleTag = `style="${fontSize} ${iconColor}"`;
                         }
 
-                        iconTag = `<span style="font-size: 40px; ${iconColor}"><i class="${icon}"></i></span>`;
+                        if ( glucDay > 1 )
+                            iconTag = `<span style="font-size: 32px; ${iconColor}"><i class="fa fa-heartbeat"></i></span>`;
+                        else
+                            iconTag = `<span style="font-size: 32px; ${iconColor}"><i class="${icon}"></i></span>`;
 
 
                         if (glucRowId < 0) {
-                            //89	7292		44164	644	2021	1	1	5	GLUC	2021-1-1	10:44	175
                             let row = [1, idNoMeasure, lastDay, 0, 1900, 1, 1, 5, "GLUC", "1900-1-1", "00:00", 0]
                             idNoMeasure++;
                             styleTag = `style="${fontSize}`;
+                            console.log(`glucRowId: ${glucRowId} i:${i} lastDay:${lastDay}  dayRows: ${dayRows.length}`);
                             //glucRow = buildGlucRow(lastDay, iconTag, styleTag, iconColor, dayRows, row);
                         }
                         else {
                             gl = GlucLevels.filter(x => master2[glucRowId][12] >= x.min && master2[glucRowId][12] < x.max);
                             if (gl.length > 0) {
-                                styleTag = `style="${fontSize} background-color:${gl[0].backgroundColor}; color:white; width: ${master2[glucRowId][12]}px;"`;
-                                gl[0].count++;
+                                styleTag = `style="${fontSize} background-color:${gl[0].backgroundColor}; color:white; width: ${master2[glucRowId][12] * 3}px;"`;
                             }
 
                             glucRow = buildGlucRow(lastDay, iconTag, styleTag, iconColor, dayRows, master2[glucRowId]);
                         }
 
                         row = `${row}${glucRow}`;
-                        glucRowId = -1;
-                        glucRow = "";
-                        dayRows = "";
-                        console.log(`end processing day ${lastDay} record:${i}`)
+                        i--;
                     }
                 }
             }
@@ -1168,6 +1158,7 @@
         writeInnerHtml("btnReport", "Reporte");
         writeInnerHtml("title", glucTotalsHtml);
         writeInnerHtml("report", row);
+        localStorage.setItem("GlucReport", row);
         setFilterData();
     }
 
@@ -1180,7 +1171,7 @@
         let row = "";
         if (records.length > 0) {
 
-            row = `<div class="row row-fat">
+            row = `<div class="row">
                 <div class="col-md-1"></div>
             <div class="col-md-1"></div>
             <div class="col-md-8">Drug Item</div>
@@ -1210,7 +1201,7 @@
         let row = "";
         if (records.length > 0) {
 
-            row = `<div class="row row-fat">
+            row = `<div class="row">
             <div class="col-md-1"></div>
             <div class="col-md-1"></div>
             <div class="col-md-4">Sport</div>
@@ -1222,7 +1213,7 @@
 
             for (var i = 0; i < records.length; i++) {
                 row = `${row}
-            <div class="row row-fat">
+            <div class="row">
                 <div class="col-md-1"></div>
                 <div class="col-md-1 cursorPointer"><i class="fas fa-trash-alt"  onclick="removeExe('${DrugItems}',${i})"></i></div>
                 <div class="col-md-4">${records[i].descr}</div>
@@ -1521,6 +1512,7 @@
             showDiv("submitArea");
             master = response.master;
             detail = response.detail;
+            lastDay = 0;
             renderMaster();
         }
         else {
@@ -1560,6 +1552,7 @@
             hideDiv("DIVfechaHora");
             hideDiv("DIVrecType")
             showDiv("reportArea");
+            lastDay = 0;
             renderMaster();
             disableButtons(false);
         }
